@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "Se2CywlQr4EDxV0m0n1lJIaOkS6nTeLOmIvbGezLtNA=",
+  "Source": "PumpStationManagement_API",
+  "BasePath": "_content/PumpStationManagement_API",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

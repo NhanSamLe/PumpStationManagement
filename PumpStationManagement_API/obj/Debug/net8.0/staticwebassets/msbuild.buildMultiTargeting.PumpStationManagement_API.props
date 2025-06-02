@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\PumpStationManagement_API.props" />
+</Project>

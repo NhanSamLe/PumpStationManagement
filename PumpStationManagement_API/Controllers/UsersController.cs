@@ -1,0 +1,297 @@
+﻿using Microsoft.AspNetCore.Http;
+
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using PumpStationManagement_API.Models;
+using PumpStationManagement_API.Request;
+using PumpStationManagement_API.Services;
+using System.Text.RegularExpressions;
+using PumpStationManagement_API.Enums;
+
+namespace PumpStationManagement_API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class UsersController : ControllerBase
+    {
+        private readonly ApplicationDBContext context;
+        public UsersController(ApplicationDBContext context)
+        {
+            this.context = context;
+
+        }
+        // GET: api/Users
+        [HttpGet]
+        public async Task<ActionResult<List<User>>> GetUsers([FromQuery] string? keyword = null)
+        {
+            try
+            {
+                IQueryable<User> query = context.Users
+                    .Where(u => !u.IsDelete)
+                    .OrderByDescending(u => u.UserId);
+
+                if (!string.IsNullOrEmpty(keyword))
+                {
+                    keyword = keyword.Trim().ToLower();
+                    query = query.Where(u => u.FullName.ToLower().Contains(keyword) || u.Username.ToLower().Contains(keyword) ||
+                                            u.Email.ToLower().Contains(keyword) ||
+                                            (u.PhoneNumber != null && u.PhoneNumber.ToLower().Contains(keyword)));
+                }
+
+                var users = await query.ToListAsync();
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi lấy danh sách người dùng", error = ex.Message });
+            }
+        }
+
+        // GET: api/Users/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<User>> GetUser(int id)
+        {
+            try
+            {
+                var user = await context.Users
+                    .Where(u => u.UserId == id && !u.IsDelete)
+                    .FirstOrDefaultAsync();
+
+                if (user == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy người dùng" });
+                }
+
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi lấy thông tin người dùng", error = ex.Message });
+            }
+        }
+
+        // POST: api/Users
+        [HttpPost]
+        public async Task<ActionResult<User>> CreateUser([FromBody] User user)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Kiểm tra định dạng email
+            if (!IsValidEmail(user.Email))
+            {
+                return BadRequest(new { message = "Địa chỉ email không hợp lệ" });
+            }
+
+            // Kiểm tra định dạng số điện thoại (nếu có)
+            if (!string.IsNullOrEmpty(user.PhoneNumber) && !IsValidPhoneNumber(user.PhoneNumber))
+            {
+                return BadRequest(new { message = "Số điện thoại không hợp lệ" });
+            }
+
+            try
+            {
+                user.IsActive = user.IsActive ?? true;
+                user.IsDelete = false;
+                user.CreatedOn = DateTime.Now;
+
+                context.Users.Add(user);
+                await context.SaveChangesAsync();
+
+                return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, user);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi tạo người dùng", error = ex.Message });
+            }
+        }
+
+        // PUT: api/Users/5
+        [HttpPut("{id}")]
+        public async Task<ActionResult<User>> UpdateUser(int id, [FromBody] User user)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Kiểm tra định dạng email
+            if (!IsValidEmail(user.Email))
+            {
+                return BadRequest(new { message = "Địa chỉ email không hợp lệ" });
+            }
+
+            // Kiểm tra định dạng số điện thoại (nếu có)
+            if (!string.IsNullOrEmpty(user.PhoneNumber) && !IsValidPhoneNumber(user.PhoneNumber))
+            {
+                return BadRequest(new { message = "Số điện thoại không hợp lệ" });
+            }
+
+            try
+            {
+                var existingUser = await context.Users
+                    .FirstOrDefaultAsync(u => u.UserId == id && !u.IsDelete);
+
+                if (existingUser == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy người dùng" });
+                }
+
+                existingUser.Username = user.Username;
+                existingUser.Password = user.Password; // Nên mã hóa mật khẩu
+                existingUser.FullName = user.FullName;
+                existingUser.Email = user.Email;
+                existingUser.PhoneNumber = user.PhoneNumber;
+                existingUser.Role = user.Role;
+                existingUser.IsActive = user.IsActive ?? existingUser.IsActive;
+                existingUser.ModifiedBy = user.ModifiedBy;
+                existingUser.ModifiedOn = DateTime.Now;
+
+                await context.SaveChangesAsync();
+                return Ok(existingUser);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi cập nhật người dùng", error = ex.Message });
+            }
+        }
+
+        // DELETE: api/Users/5
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteUser(int id, [FromQuery] int modifiedBy)
+        {
+            try
+            {
+                var user = await context.Users
+                    .FirstOrDefaultAsync(u => u.UserId == id && !u.IsDelete);
+
+                if (user == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy người dùng" });
+                }
+
+                user.IsDelete = true;
+                user.ModifiedBy = modifiedBy;
+                user.ModifiedOn = DateTime.Now;
+
+                await context.SaveChangesAsync();
+                return Ok(new { message = "Xóa người dùng thành công" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi xóa người dùng", error = ex.Message });
+            }
+        }
+        // POST: api/Users/register
+        [HttpPost("register")]
+        public async Task<ActionResult<User>> Register([FromBody] RegisterRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Kiểm tra định dạng email
+            if (!IsValidEmail(request.Email))
+            {
+                return BadRequest(new { message = "Địa chỉ email không hợp lệ" });
+            }
+
+            // Kiểm tra định dạng số điện thoại (nếu có)
+            if (!string.IsNullOrEmpty(request.PhoneNumber) && !IsValidPhoneNumber(request.PhoneNumber))
+            {
+                return BadRequest(new { message = "Số điện thoại không hợp lệ" });
+            }
+
+            // Kiểm tra username đã tồn tại
+            if (await context.Users.AnyAsync(u => u.Username == request.Username && !u.IsDelete))
+            {
+                return BadRequest(new { message = "Tên đăng nhập đã tồn tại" });
+            }
+
+            // Kiểm tra email đã tồn tại
+            if (await context.Users.AnyAsync(u => u.Email == request.Email && !u.IsDelete))
+            {
+                return BadRequest(new { message = "Email đã được sử dụng" });
+            }
+
+            try
+            {
+                var user = new User
+                {
+                    Username = request.Username,
+                    Password = request.Password,
+                    FullName = request.FullName,
+                    Email = request.Email,
+                    PhoneNumber = request.PhoneNumber,
+                    Role = (int)UserRole.User, // Mặc định là user thường (có thể thay đổi)
+                    IsActive = true,
+                    IsDelete = false,
+                    //CreatedBy = null, // Giả sử 0 là hệ thống hoặc người dùng tự đăng ký
+                    CreatedOn = DateTime.Now
+                };
+
+                context.Users.Add(user);
+                await context.SaveChangesAsync();
+
+                return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, user);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi đăng ký người dùng", error = ex.Message });
+            }
+        }
+
+        // POST: api/Users/login
+        [HttpPost("login")]
+        public async Task<ActionResult<User>> Login([FromBody] LoginRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var user = await context.Users
+                    .FirstOrDefaultAsync(u => u.Username == request.Username && !u.IsDelete);
+
+                if (user == null || (request.Password != user.Password))
+                {
+                    return Unauthorized(new { message = "Tên đăng nhập hoặc mật khẩu không đúng" });
+                }
+
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi đăng nhập", error = ex.Message });
+            }
+        }
+
+
+
+        // Phương thức kiểm tra định dạng email
+        private bool IsValidEmail(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+                return false;
+
+            var emailRegex = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            return Regex.IsMatch(email, emailRegex);
+        }
+
+        // Phương thức kiểm tra định dạng số điện thoại
+        private bool IsValidPhoneNumber(string phoneNumber)
+        {
+            if (string.IsNullOrEmpty(phoneNumber))
+                return true; // PhoneNumber là tùy chọn (nullable)
+
+            var phoneRegex = @"^\d{10,11}$";
+            return Regex.IsMatch(phoneNumber, phoneRegex);
+        }
+
+    }
+}
