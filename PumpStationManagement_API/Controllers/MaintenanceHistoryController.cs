@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PumpStationManagement_API.DTOs;
 using PumpStationManagement_API.Models;
 using PumpStationManagement_API.Services;
 
@@ -74,9 +75,8 @@ namespace PumpStationManagement_API.Controllers
             }
         }
 
-        // POST: api/MaintenanceHistory
         [HttpPost]
-        public async Task<ActionResult<MaintenanceHistory>> CreateMaintenanceHistory([FromBody] MaintenanceHistory maintenanceHistory)
+        public async Task<ActionResult<MaintenanceHistory>> CreateMaintenanceHistory([FromBody] MaintenanceHistoryDTO maintenanceHistoryDto)
         {
             if (!ModelState.IsValid)
             {
@@ -86,10 +86,10 @@ namespace PumpStationManagement_API.Controllers
             try
             {
                 // Kiểm tra PumpId hợp lệ (nếu có)
-                if (maintenanceHistory.PumpId.HasValue)
+                if (maintenanceHistoryDto.PumpId.HasValue)
                 {
                     var pumpExists = await context.Pumps
-                        .AnyAsync(p => p.PumpId == maintenanceHistory.PumpId && !p.IsDelete);
+                        .AnyAsync(p => p.PumpId == maintenanceHistoryDto.PumpId && !p.IsDelete);
                     if (!pumpExists)
                     {
                         return BadRequest(new { message = "Máy bơm không tồn tại hoặc đã bị xóa" });
@@ -97,20 +97,28 @@ namespace PumpStationManagement_API.Controllers
                 }
 
                 // Kiểm tra PerformedBy hợp lệ (nếu có)
-                if (maintenanceHistory.PerformedBy.HasValue)
+                if (maintenanceHistoryDto.PerformedBy.HasValue)
                 {
                     var userExists = await context.Users
-                        .AnyAsync(u => u.UserId == maintenanceHistory.PerformedBy);
+                        .AnyAsync(u => u.UserId == maintenanceHistoryDto.PerformedBy);
                     if (!userExists)
                     {
                         return BadRequest(new { message = "Người thực hiện không tồn tại" });
                     }
                 }
 
-                // Mặc định Status là Pending nếu không được cung cấp
-                maintenanceHistory.Status = maintenanceHistory.Status != default ? maintenanceHistory.Status : 0; // 0 = Pending
-                maintenanceHistory.IsDelete = false;
-                maintenanceHistory.CreatedOn = DateTime.Now;
+                var maintenanceHistory = new MaintenanceHistory
+                {
+                    PumpId = maintenanceHistoryDto.PumpId,
+                    MaintenanceType = maintenanceHistoryDto.MaintenanceType,
+                    StartDate = maintenanceHistoryDto.StartDate,
+                    EndDate = maintenanceHistoryDto.EndDate,
+                    Description = maintenanceHistoryDto.Description,
+                    Status = maintenanceHistoryDto.Status != default ? maintenanceHistoryDto.Status : 0, // 0 = Pending
+                    PerformedBy = maintenanceHistoryDto.PerformedBy,
+                    IsDelete = false,
+                    CreatedOn = DateTime.Now
+                };
 
                 context.MaintenanceHistories.Add(maintenanceHistory);
                 await context.SaveChangesAsync();
@@ -125,7 +133,7 @@ namespace PumpStationManagement_API.Controllers
 
         // PUT: api/MaintenanceHistory/5
         [HttpPut("{id}")]
-        public async Task<ActionResult<MaintenanceHistory>> UpdateMaintenanceHistory(int id, [FromBody] MaintenanceHistory maintenanceHistory)
+        public async Task<ActionResult<MaintenanceHistory>> UpdateMaintenanceHistory(int id, [FromBody] MaintenanceHistoryDTO maintenanceHistoryDto)
         {
             if (!ModelState.IsValid)
             {
@@ -143,10 +151,10 @@ namespace PumpStationManagement_API.Controllers
                 }
 
                 // Kiểm tra PumpId hợp lệ (nếu có)
-                if (maintenanceHistory.PumpId.HasValue)
+                if (maintenanceHistoryDto.PumpId.HasValue)
                 {
                     var pumpExists = await context.Pumps
-                        .AnyAsync(p => p.PumpId == maintenanceHistory.PumpId && !p.IsDelete);
+                        .AnyAsync(p => p.PumpId == maintenanceHistoryDto.PumpId && !p.IsDelete);
                     if (!pumpExists)
                     {
                         return BadRequest(new { message = "Máy bơm không tồn tại hoặc đã bị xóa" });
@@ -154,23 +162,23 @@ namespace PumpStationManagement_API.Controllers
                 }
 
                 // Kiểm tra PerformedBy hợp lệ (nếu có)
-                if (maintenanceHistory.PerformedBy.HasValue)
+                if (maintenanceHistoryDto.PerformedBy.HasValue)
                 {
                     var userExists = await context.Users
-                        .AnyAsync(u => u.UserId == maintenanceHistory.PerformedBy);
+                        .AnyAsync(u => u.UserId == maintenanceHistoryDto.PerformedBy);
                     if (!userExists)
                     {
                         return BadRequest(new { message = "Người thực hiện không tồn tại" });
                     }
                 }
 
-                existingMaintenanceHistory.PumpId = maintenanceHistory.PumpId;
-                existingMaintenanceHistory.MaintenanceType = maintenanceHistory.MaintenanceType;
-                existingMaintenanceHistory.StartDate = maintenanceHistory.StartDate;
-                existingMaintenanceHistory.EndDate = maintenanceHistory.EndDate;
-                existingMaintenanceHistory.Description = maintenanceHistory.Description;
-                existingMaintenanceHistory.Status = maintenanceHistory.Status;
-                existingMaintenanceHistory.PerformedBy = maintenanceHistory.PerformedBy;
+                existingMaintenanceHistory.PumpId = maintenanceHistoryDto.PumpId;
+                existingMaintenanceHistory.MaintenanceType = maintenanceHistoryDto.MaintenanceType;
+                existingMaintenanceHistory.StartDate = maintenanceHistoryDto.StartDate;
+                existingMaintenanceHistory.EndDate = maintenanceHistoryDto.EndDate;
+                existingMaintenanceHistory.Description = maintenanceHistoryDto.Description;
+                existingMaintenanceHistory.Status = maintenanceHistoryDto.Status;
+                existingMaintenanceHistory.PerformedBy = maintenanceHistoryDto.PerformedBy;
 
                 await context.SaveChangesAsync();
                 return Ok(existingMaintenanceHistory);

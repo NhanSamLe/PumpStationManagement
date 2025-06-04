@@ -1,0 +1,105 @@
+﻿@page "/users/edit/{Id:int}"
+@using PumpStationManagemnet_BlazorApp.DTOs
+@using PumpStationManagemnet_BlazorApp.Models
+@using PumpStationManagemnet_BlazorApp.Services
+@inject UserService UserService
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+
+<h3>Chỉnh sửa người dùng</h3>
+
+@if (user == null)
+{
+    <p>Đang tải...</p>
+}
+else
+{
+    <EditForm Model="@userDto" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Tên đăng nhập</label>
+            <InputText class="form-control" @bind-Value="userDto.Username" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Mật khẩu</label>
+            <InputText class="form-control" type="password" @bind-Value="userDto.Password" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Họ tên</label>
+            <InputText class="form-control" @bind-Value="userDto.FullName" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Email</label>
+            <InputText class="form-control" @bind-Value="userDto.Email" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Số điện thoại</label>
+            <InputText class="form-control" @bind-Value="userDto.PhoneNumber" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Vai trò</label>
+            <InputNumber class="form-control" @bind-Value="userDto.Role" />
+        </div>
+        <div class="mb-3 form-check">
+            <InputCheckbox class="form-check-input" @bind-Value="isActiveTemp" />
+            <label class="form-check-label">Hoạt động</label>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Người chỉnh sửa (ID)</label>
+            <InputNumber class="form-control" @bind-Value="userDto.ModifiedBy" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <a class="btn btn-secondary ms-2" href="/users">Hủy</a>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private User? user;
+    private UserDTO userDto = new();
+    private bool isActiveTemp; // Biến tạm thời để bind với InputCheckbox
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await UserService.GetUserAsync(Id);
+        if (user != null)
+        {
+            userDto = new UserDTO
+                {
+                    Username = user.Username,
+                    Password = user.Password,
+                    FullName = user.FullName,
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber,
+                    Role = user.Role,
+                    IsActive = user.IsActive,
+                    ModifiedBy = user.ModifiedBy
+                };
+            // Đồng bộ giá trị isActiveTemp với userDto.IsActive
+            isActiveTemp = userDto.IsActive ?? false; // Mặc định là false nếu null
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        // Đồng bộ isActiveTemp với userDto.IsActive trước khi gửi API
+        userDto.IsActive = isActiveTemp;
+
+        var response = await UserService.UpdateUserAsync(Id, userDto);
+        if (response.IsSuccessStatusCode)
+        {
+            await JS.InvokeVoidAsync("alert", "Cập nhật người dùng thành công!");
+            NavigationManager.NavigateTo("/users");
+        }
+        else
+        {
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+        }
+    }
+}

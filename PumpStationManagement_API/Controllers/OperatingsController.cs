@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PumpStationManagement_API.DTOs;
 using PumpStationManagement_API.Models;
 using PumpStationManagement_API.Services;
 
@@ -71,7 +72,7 @@ namespace PumpStationManagement_API.Controllers
 
         // POST: api/Operatings
         [HttpPost]
-        public async Task<ActionResult<OperatingData>> CreateOperatingDatum([FromBody] OperatingData operatingData)
+        public async Task<ActionResult<OperatingData>> CreateOperatingDatum([FromBody] OperatingDataDTO operatingDataDto)
         {
             if (!ModelState.IsValid)
             {
@@ -82,14 +83,26 @@ namespace PumpStationManagement_API.Controllers
             {
                 // Kiểm tra PumpId hợp lệ
                 var pumpExists = await context.Pumps
-                    .AnyAsync(p => p.PumpId == operatingData.PumpId && !p.IsDelete);
+                    .AnyAsync(p => p.PumpId == operatingDataDto.PumpId && !p.IsDelete);
                 if (!pumpExists)
                 {
                     return BadRequest(new { message = "Máy bơm không tồn tại hoặc đã bị xóa" });
                 }
 
-                operatingData.IsDelete = false;
-                operatingData.CreatedOn = DateTime.Now;
+                var operatingData = new OperatingData
+                {
+                    PumpId = operatingDataDto.PumpId,
+                    RecordTime = operatingDataDto.RecordTime,
+                    FlowRate = operatingDataDto.FlowRate,
+                    Pressure = operatingDataDto.Pressure,
+                    PowerConsumption = operatingDataDto.PowerConsumption,
+                    Temperature = operatingDataDto.Temperature,
+                    RunningHours = operatingDataDto.RunningHours,
+                    Efficiency = operatingDataDto.Efficiency,
+                    Status = operatingDataDto.Status,
+                    IsDelete = false,
+                    CreatedOn = DateTime.Now
+                };
 
                 context.OperatingDatas.Add(operatingData);
                 await context.SaveChangesAsync();
@@ -104,7 +117,7 @@ namespace PumpStationManagement_API.Controllers
 
         // PUT: api/Operatings/5
         [HttpPut("{id}")]
-        public async Task<ActionResult<OperatingData>> UpdateOperatingDatum(int id, [FromBody] OperatingData operatingData)
+        public async Task<ActionResult<OperatingData>> UpdateOperatingDatum(int id, [FromBody] OperatingDataDTO operatingDataDto)
         {
             if (!ModelState.IsValid)
             {
@@ -123,15 +136,21 @@ namespace PumpStationManagement_API.Controllers
 
                 // Kiểm tra PumpId hợp lệ
                 var pumpExists = await context.Pumps
-                    .AnyAsync(p => p.PumpId == operatingData.PumpId && !p.IsDelete);
+                    .AnyAsync(p => p.PumpId == operatingDataDto.PumpId && !p.IsDelete);
                 if (!pumpExists)
                 {
                     return BadRequest(new { message = "Máy bơm không tồn tại hoặc đã bị xóa" });
                 }
 
-                existingOperatingData.PumpId = operatingData.PumpId;
-                existingOperatingData.FlowRate = operatingData.FlowRate;
-                existingOperatingData.Pressure = operatingData.Pressure;
+                existingOperatingData.PumpId = operatingDataDto.PumpId;
+                existingOperatingData.RecordTime = operatingDataDto.RecordTime;
+                existingOperatingData.FlowRate = operatingDataDto.FlowRate;
+                existingOperatingData.Pressure = operatingDataDto.Pressure;
+                existingOperatingData.PowerConsumption = operatingDataDto.PowerConsumption;
+                existingOperatingData.Temperature = operatingDataDto.Temperature;
+                existingOperatingData.RunningHours = operatingDataDto.RunningHours;
+                existingOperatingData.Efficiency = operatingDataDto.Efficiency;
+                existingOperatingData.Status = operatingDataDto.Status;
                 existingOperatingData.ModifiedOn = DateTime.Now;
 
                 await context.SaveChangesAsync();

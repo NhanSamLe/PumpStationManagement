@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PumpStationManagement_API.Models;
 using PumpStationManagement_API.Services;
 using PumpStationManagement_API.Enums;
+using PumpStationManagement_API.DTOs;
 
 namespace PumpStationManagement_API.Controllers
 {
@@ -69,9 +70,8 @@ namespace PumpStationManagement_API.Controllers
             }
         }
 
-        // POST: api/Pumps
         [HttpPost]
-        public async Task<ActionResult<Pump>> CreatePump([FromBody] Pump pump)
+        public async Task<ActionResult<Pump>> CreatePump([FromBody] PumpDTO pumpDto)
         {
             if (!ModelState.IsValid)
             {
@@ -82,16 +82,27 @@ namespace PumpStationManagement_API.Controllers
             {
                 // Kiểm tra StationId hợp lệ
                 var stationExists = await context.PumpStations
-                    .AnyAsync(s => s.StationId == pump.StationId && !s.IsDelete);
+                    .AnyAsync(s => s.StationId == pumpDto.StationId && !s.IsDelete);
                 if (!stationExists)
                 {
                     return BadRequest(new { message = "Trạm bơm không tồn tại hoặc đã bị xóa" });
                 }
 
-                // Mặc định Status là Active nếu không được cung cấp
-                pump.Status = (int)PumpStatus.Active;
-                pump.IsDelete = false;
-                pump.CreatedOn = DateTime.Now;
+                var pump = new Pump
+                {
+                    StationId = pumpDto.StationId,
+                    PumpName = pumpDto.PumpName,
+                    PumpType = pumpDto.PumpType,
+                    Capacity = pumpDto.Capacity,
+                    Status = pumpDto.Status != null ? pumpDto.Status : (int)PumpStatus.Active,
+                    Manufacturer = pumpDto.Manufacturer,
+                    SerialNumber = pumpDto.SerialNumber,
+                    WarrantyExpireDate = pumpDto.WarrantyExpireDate,
+                    Description = pumpDto.Description,
+                    IsDelete = false,
+                    CreatedOn = DateTime.Now,
+                    CreatedBy = pumpDto.ModifiedBy ?? 0 // Giả sử 0 là hệ thống hoặc người dùng tự tạo
+                };
 
                 context.Pumps.Add(pump);
                 await context.SaveChangesAsync();
@@ -106,7 +117,7 @@ namespace PumpStationManagement_API.Controllers
 
         // PUT: api/Pumps/5
         [HttpPut("{id}")]
-        public async Task<ActionResult<Pump>> UpdatePump(int id, [FromBody] Pump pump)
+        public async Task<ActionResult<Pump>> UpdatePump(int id, [FromBody] PumpDTO pumpDto)
         {
             if (!ModelState.IsValid)
             {
@@ -125,17 +136,22 @@ namespace PumpStationManagement_API.Controllers
 
                 // Kiểm tra StationId hợp lệ
                 var stationExists = await context.PumpStations
-                    .AnyAsync(s => s.StationId == pump.StationId && !s.IsDelete);
+                    .AnyAsync(s => s.StationId == pumpDto.StationId && !s.IsDelete);
                 if (!stationExists)
                 {
                     return BadRequest(new { message = "Trạm bơm không tồn tại hoặc đã bị xóa" });
                 }
 
-                existingPump.PumpName = pump.PumpName;
-                existingPump.SerialNumber = pump.SerialNumber;
-                existingPump.StationId = pump.StationId;
-                existingPump.Status = pump.Status;
-                existingPump.ModifiedBy = pump.ModifiedBy;
+                existingPump.StationId = pumpDto.StationId;
+                existingPump.PumpName = pumpDto.PumpName;
+                existingPump.PumpType = pumpDto.PumpType;
+                existingPump.Capacity = pumpDto.Capacity;
+                existingPump.Status = pumpDto.Status;
+                existingPump.Manufacturer = pumpDto.Manufacturer;
+                existingPump.SerialNumber = pumpDto.SerialNumber;
+                existingPump.WarrantyExpireDate = pumpDto.WarrantyExpireDate;
+                existingPump.Description = pumpDto.Description;
+                existingPump.ModifiedBy = pumpDto.ModifiedBy;
                 existingPump.ModifiedOn = DateTime.Now;
 
                 await context.SaveChangesAsync();

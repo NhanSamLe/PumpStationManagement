@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PumpStationManagement_API.DTOs;
 using PumpStationManagement_API.Enums;
 using PumpStationManagement_API.Models;
 using PumpStationManagement_API.Services;
@@ -77,7 +78,7 @@ namespace PumpStationManagement_API.Controllers
 
         // POST: api/Alerts
         [HttpPost]
-        public async Task<ActionResult<Alert>> CreateAlert([FromBody] Alert alert)
+        public async Task<ActionResult<Alert>> CreateAlert([FromBody] AlertDTO alertDto)
         {
             if (!ModelState.IsValid)
             {
@@ -87,30 +88,37 @@ namespace PumpStationManagement_API.Controllers
             try
             {
                 // Kiểm tra PumpId hợp lệ (nếu có)
-                if (alert.PumpId.HasValue)
+                if (alertDto.PumpId.HasValue)
                 {
                     var pumpExists = await context.Pumps
-                        .AnyAsync(p => p.PumpId == alert.PumpId && !p.IsDelete);
+                        .AnyAsync(p => p.PumpId == alertDto.PumpId && !p.IsDelete);
                     if (!pumpExists)
                     {
                         return BadRequest(new { message = "Máy bơm không tồn tại hoặc đã bị xóa" });
                     }
                 }
 
-                // Kiểm tra CreatedBy hợp lệ (nếu có)
-                if (alert.CreatedBy.HasValue)
+                // Kiểm tra ModifiedBy hợp lệ (nếu có) - sử dụng ModifiedBy thay vì CreatedBy để đồng nhất
+                if (alertDto.ModifiedBy.HasValue)
                 {
                     var userExists = await context.Users
-                        .AnyAsync(u => u.UserId == alert.CreatedBy);
+                        .AnyAsync(u => u.UserId == alertDto.ModifiedBy);
                     if (!userExists)
                     {
                         return BadRequest(new { message = "Người tạo không tồn tại" });
                     }
                 }
-                // Mặc định Status là Pending nếu không được cung cấp
-                alert.Status = (int)AlertStatus.Active;
-                alert.IsDelete = false;
-                alert.CreatedOn = DateTime.Now;
+
+                var alert = new Alert
+                {
+                    PumpId = alertDto.PumpId,
+                    AlertType = alertDto.AlertType,
+                    AlertMessage = alertDto.AlertMessage,
+                    Status = alertDto.Status != default ? alertDto.Status : (int)AlertStatus.Active,
+                    IsDelete = false,
+                    CreatedOn = DateTime.Now,
+                    CreatedBy = alertDto.ModifiedBy // Sử dụng ModifiedBy như CreatedBy để đồng nhất
+                };
 
                 context.Alerts.Add(alert);
                 await context.SaveChangesAsync();
@@ -125,7 +133,7 @@ namespace PumpStationManagement_API.Controllers
 
         // PUT: api/Alerts/5
         [HttpPut("{id}")]
-        public async Task<ActionResult<Alert>> UpdateAlert(int id, [FromBody] Alert alert)
+        public async Task<ActionResult<Alert>> UpdateAlert(int id, [FromBody] AlertDTO alertDto)
         {
             if (!ModelState.IsValid)
             {
@@ -143,10 +151,10 @@ namespace PumpStationManagement_API.Controllers
                 }
 
                 // Kiểm tra PumpId hợp lệ (nếu có)
-                if (alert.PumpId.HasValue)
+                if (alertDto.PumpId.HasValue)
                 {
                     var pumpExists = await context.Pumps
-                        .AnyAsync(p => p.PumpId == alert.PumpId && !p.IsDelete);
+                        .AnyAsync(p => p.PumpId == alertDto.PumpId && !p.IsDelete);
                     if (!pumpExists)
                     {
                         return BadRequest(new { message = "Máy bơm không tồn tại hoặc đã bị xóa" });
@@ -154,21 +162,21 @@ namespace PumpStationManagement_API.Controllers
                 }
 
                 // Kiểm tra ModifiedBy hợp lệ (nếu có)
-                if (alert.ModifiedBy.HasValue)
+                if (alertDto.ModifiedBy.HasValue)
                 {
                     var userExists = await context.Users
-                        .AnyAsync(u => u.UserId == alert.ModifiedBy);
+                        .AnyAsync(u => u.UserId == alertDto.ModifiedBy);
                     if (!userExists)
                     {
                         return BadRequest(new { message = "Người chỉnh sửa không tồn tại" });
                     }
                 }
 
-                existingAlert.PumpId = alert.PumpId;
-                existingAlert.AlertType = alert.AlertType;
-                existingAlert.AlertMessage = alert.AlertMessage;
-                existingAlert.Status = alert.Status;
-                existingAlert.ModifiedBy = alert.ModifiedBy;
+                existingAlert.PumpId = alertDto.PumpId;
+                existingAlert.AlertType = alertDto.AlertType;
+                existingAlert.AlertMessage = alertDto.AlertMessage;
+                existingAlert.Status = alertDto.Status;
+                existingAlert.ModifiedBy = alertDto.ModifiedBy;
                 existingAlert.ModifiedOn = DateTime.Now;
 
                 await context.SaveChangesAsync();
@@ -179,6 +187,7 @@ namespace PumpStationManagement_API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi cập nhật cảnh báo", error = ex.Message });
             }
         }
+
 
         // DELETE: api/Alerts/5
         [HttpDelete("{id}")]

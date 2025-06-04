@@ -142,3 +142,4 @@ C:\Users\Admin\source\repos\PumpStationManagement_API\PumpStationManagement_API\
 C:\Users\Admin\source\repos\PumpStationManagement_API\PumpStationManagement_API\obj\Debug\net8.0\PumpStationManagement_API.pdb
 C:\Users\Admin\source\repos\PumpStationManagement_API\PumpStationManagement_API\obj\Debug\net8.0\PumpStationManagement_API.genruntimeconfig.cache
 C:\Users\Admin\source\repos\PumpStationManagement_API\PumpStationManagement_API\obj\Debug\net8.0\ref\PumpStationManagement_API.dll
+C:\Users\Admin\source\repos\PumpStationManagement_API\PumpStationManagement_API\obj\Debug\net8.0\PumpStationManagement_API.sourcelink.json

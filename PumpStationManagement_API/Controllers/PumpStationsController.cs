@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PumpStationManagement_API.Models;
 using PumpStationManagement_API.Services;
 using PumpStationManagement_API.Enums;
+using PumpStationManagement_API.DTOs;
 
 namespace PumpStationManagement_API.Controllers
 {
@@ -67,7 +68,7 @@ namespace PumpStationManagement_API.Controllers
 
         // POST: api/PumpStations
         [HttpPost]
-        public async Task<ActionResult<PumpStation>> CreatePumpStation([FromBody] PumpStation station)
+        public async Task<ActionResult<PumpStation>> CreatePumpStation([FromBody] PumpStationDTO stationDto)
         {
             if (!ModelState.IsValid)
             {
@@ -76,9 +77,16 @@ namespace PumpStationManagement_API.Controllers
 
             try
             {
-                station.Status = station.Status != null ? station.Status : (int)StationStatus.Active;
-                station.IsDelete = false;
-                station.CreatedOn = DateTime.Now;
+                var station = new PumpStation
+                {
+                    StationName = stationDto.StationName,
+                    Location = stationDto.Location,
+                    Description = stationDto.Description,
+                    Status = stationDto.Status != null ? stationDto.Status : (int)StationStatus.Active,
+                    IsDelete = false,
+                    CreatedOn = DateTime.Now,
+                    CreatedBy = stationDto.ModifiedBy ?? 0 // Giả sử 0 là hệ thống hoặc người dùng tự tạo
+                };
 
                 context.PumpStations.Add(station);
                 await context.SaveChangesAsync();
@@ -93,7 +101,7 @@ namespace PumpStationManagement_API.Controllers
 
         // PUT: api/PumpStations/5
         [HttpPut("{id}")]
-        public async Task<ActionResult<PumpStation>> UpdatePumpStation(int id, [FromBody] PumpStation station)
+        public async Task<ActionResult<PumpStation>> UpdatePumpStation(int id, [FromBody] PumpStationDTO stationDto)
         {
             if (!ModelState.IsValid)
             {
@@ -110,13 +118,14 @@ namespace PumpStationManagement_API.Controllers
                     return NotFound(new { message = "Không tìm thấy trạm bơm" });
                 }
 
-                existingStation.StationName = station.StationName;
-                existingStation.Location = station.Location;
-                if (Enum.IsDefined(typeof(StationStatus), station.Status))
+                existingStation.StationName = stationDto.StationName;
+                existingStation.Location = stationDto.Location;
+                existingStation.Description = stationDto.Description;
+                if (Enum.IsDefined(typeof(StationStatus), stationDto.Status))
                 {
-                    existingStation.Status = station.Status;
+                    existingStation.Status = stationDto.Status;
                 }
-                existingStation.ModifiedBy = station.ModifiedBy;
+                existingStation.ModifiedBy = stationDto.ModifiedBy;
                 existingStation.ModifiedOn = DateTime.Now;
 
                 await context.SaveChangesAsync();

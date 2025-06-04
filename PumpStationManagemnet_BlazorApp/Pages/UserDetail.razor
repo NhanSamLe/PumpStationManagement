@@ -1,0 +1,41 @@
+﻿@page "/users/{Id:int}"
+@using PumpStationManagemnet_BlazorApp.DTOs
+@using PumpStationManagemnet_BlazorApp.Models
+@using PumpStationManagemnet_BlazorApp.Services
+@inject PumpStationManagemnet_BlazorApp.Services.UserService UserService
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+<h3 class="text-center mb-3">UserDetail</h3>
+@if (user == null)
+{
+    <p>Đang tải...</p>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">@user.FullName</h5>
+            <p class="card-text"><strong>ID:</strong> @user.UserId</p>
+            <p class="card-text"><strong>Tên đăng nhập:</strong> @user.Username</p>
+            <p class="card-text"><strong>Email:</strong> @user.Email</p>
+            <p class="card-text"><strong>Số điện thoại:</strong> @user.PhoneNumber</p>
+            <p class="card-text"><strong>Vai trò:</strong> @user.Role</p>
+            <p class="card-text"><strong>Trạng thái:</strong> @(user.IsActive == true ? "Hoạt động" : "Không hoạt động")</p>
+            <p class="card-text"><strong>Ngày tạo:</strong> @user.CreatedOn?.ToString("dd/MM/yyyy")</p>
+            <p class="card-text"><strong>Ngày chỉnh sửa:</strong> @user.ModifiedOn?.ToString("dd/MM/yyyy")</p>
+        </div>
+    </div>
+    <a class="btn btn-primary mt-3" href="/users">Quay lại</a>
+    <a class="btn btn-warning mt-3 ms-2" href="/users/edit/@user.UserId">Chỉnh sửa</a>
+}
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private User? user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await UserService.GetUserAsync(Id);
+    }
+}

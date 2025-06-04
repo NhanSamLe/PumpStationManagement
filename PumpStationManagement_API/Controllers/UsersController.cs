@@ -7,6 +7,7 @@ using PumpStationManagement_API.Request;
 using PumpStationManagement_API.Services;
 using System.Text.RegularExpressions;
 using PumpStationManagement_API.Enums;
+using PumpStationManagement_API.DTOs;
 
 namespace PumpStationManagement_API.Controllers
 {
@@ -72,30 +73,38 @@ namespace PumpStationManagement_API.Controllers
 
         // POST: api/Users
         [HttpPost]
-        public async Task<ActionResult<User>> CreateUser([FromBody] User user)
+        public async Task<ActionResult<User>> CreateUser([FromBody] UserDTO userDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-
             // Kiểm tra định dạng email
-            if (!IsValidEmail(user.Email))
+            if (!IsValidEmail(userDto.Email))
             {
                 return BadRequest(new { message = "Địa chỉ email không hợp lệ" });
             }
 
             // Kiểm tra định dạng số điện thoại (nếu có)
-            if (!string.IsNullOrEmpty(user.PhoneNumber) && !IsValidPhoneNumber(user.PhoneNumber))
+            if (!string.IsNullOrEmpty(userDto.PhoneNumber) && !IsValidPhoneNumber(userDto.PhoneNumber))
             {
                 return BadRequest(new { message = "Số điện thoại không hợp lệ" });
             }
-
             try
             {
-                user.IsActive = user.IsActive ?? true;
-                user.IsDelete = false;
-                user.CreatedOn = DateTime.Now;
+                var user = new User
+                {
+                    Username = userDto.Username,
+                    Password = userDto.Password, // Nên mã hóa mật khẩu
+                    FullName = userDto.FullName,
+                    Email = userDto.Email,
+                    PhoneNumber = userDto.PhoneNumber,
+                    Role = userDto.Role,
+                    IsActive = userDto.IsActive ?? true,
+                    IsDelete = false,
+                    CreatedOn = DateTime.Now,
+                    CreatedBy = userDto.ModifiedBy ?? 0 // Giả sử 0 là hệ thống hoặc người dùng tự đăng ký
+                };
 
                 context.Users.Add(user);
                 await context.SaveChangesAsync();
@@ -110,7 +119,7 @@ namespace PumpStationManagement_API.Controllers
 
         // PUT: api/Users/5
         [HttpPut("{id}")]
-        public async Task<ActionResult<User>> UpdateUser(int id, [FromBody] User user)
+        public async Task<ActionResult<User>> UpdateUser(int id, [FromBody] UserDTO userDto)
         {
             if (!ModelState.IsValid)
             {
@@ -118,13 +127,13 @@ namespace PumpStationManagement_API.Controllers
             }
 
             // Kiểm tra định dạng email
-            if (!IsValidEmail(user.Email))
+            if (!IsValidEmail(userDto.Email))
             {
                 return BadRequest(new { message = "Địa chỉ email không hợp lệ" });
             }
 
             // Kiểm tra định dạng số điện thoại (nếu có)
-            if (!string.IsNullOrEmpty(user.PhoneNumber) && !IsValidPhoneNumber(user.PhoneNumber))
+            if (!string.IsNullOrEmpty(userDto.PhoneNumber) && !IsValidPhoneNumber(userDto.PhoneNumber))
             {
                 return BadRequest(new { message = "Số điện thoại không hợp lệ" });
             }
@@ -139,14 +148,14 @@ namespace PumpStationManagement_API.Controllers
                     return NotFound(new { message = "Không tìm thấy người dùng" });
                 }
 
-                existingUser.Username = user.Username;
-                existingUser.Password = user.Password; // Nên mã hóa mật khẩu
-                existingUser.FullName = user.FullName;
-                existingUser.Email = user.Email;
-                existingUser.PhoneNumber = user.PhoneNumber;
-                existingUser.Role = user.Role;
-                existingUser.IsActive = user.IsActive ?? existingUser.IsActive;
-                existingUser.ModifiedBy = user.ModifiedBy;
+                existingUser.Username = userDto.Username;
+                existingUser.Password = userDto.Password; // Nên mã hóa mật khẩu
+                existingUser.FullName = userDto.FullName;
+                existingUser.Email = userDto.Email;
+                existingUser.PhoneNumber = userDto.PhoneNumber;
+                existingUser.Role = userDto.Role;
+                existingUser.IsActive = userDto.IsActive ?? existingUser.IsActive;
+                existingUser.ModifiedBy = userDto.ModifiedBy;
                 existingUser.ModifiedOn = DateTime.Now;
 
                 await context.SaveChangesAsync();

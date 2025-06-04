@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\PumpStationManagemnet_BlazorApp.props" />
+</Project>

@@ -1,0 +1,87 @@
+﻿@page "/users"
+@using PumpStationManagemnet_BlazorApp.DTOs
+@using PumpStationManagemnet_BlazorApp.Models
+@using PumpStationManagemnet_BlazorApp.Services
+@inject PumpStationManagemnet_BlazorApp.Services.UserService UserService
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+<h1 class="text-center mb-3"> List of Users </h1>
+<div class="mb-3">
+    <input type="text" class="form-control" @bind="keyword" placeholder="Tìm kiếm theo tên, email, hoặc số điện thoại..." />
+    <button class="btn btn-primary mt-2" @onclick="SearchUsers">Tìm kiếm</button>
+    <a class="btn btn-success mt-2 ms-2" href="/users/create">Tạo người dùng mới</a>
+</div>
+@if (users == null)
+{
+<p>Đang tải...</p>
+}
+else if (!users.Any())
+{
+<p>Không tìm thấy người dùng nào.</p>
+}
+else
+{
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Tên đăng nhập</th>
+            <th>Họ tên</th>
+            <th>Email</th>
+            <th>Số điện thoại</th>
+            <th>Vai trò</th>
+            <th>Trạng thái</th>
+            <th>Hành động</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in users)
+        {
+            <tr>
+                <td>@user.UserId</td>
+                <td>@user.Username</td>
+                <td>@user.FullName</td>
+                <td>@user.Email</td>
+                <td>@user.PhoneNumber</td>
+                <td>@user.Role</td>
+                <td>@(user.IsActive == true ? "Hoạt động" : "Không hoạt động")</td>
+                <td>
+                    <a class="btn btn-info btn-sm" href="/users/@user.UserId">Chi tiết</a>
+                    <a class="btn btn-warning btn-sm" href="/users/edit/@user.UserId">Sửa</a>
+                    <button class="btn btn-danger btn-sm" @onclick="() => DeleteUser(user.UserId)">Xóa</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+}
+@code {
+    private List<User>? users;
+    private string keyword = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await UserService.GetUsersAsync();
+    }
+
+    private async Task SearchUsers()
+    {
+        users = await UserService.GetUsersAsync(keyword);
+    }
+
+    private async Task DeleteUser(int id)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", "Bạn có chắc muốn xóa người dùng này?"))
+        {
+            var response = await UserService.DeleteUserAsync(id, 1); // Giả sử ModifiedBy = 1
+            if (response.IsSuccessStatusCode)
+            {
+                users = await UserService.GetUsersAsync(keyword);
+            }
+            else
+            {
+                // Xử lý lỗi (hiển thị thông báo)
+            }
+        }
+    }
+}
