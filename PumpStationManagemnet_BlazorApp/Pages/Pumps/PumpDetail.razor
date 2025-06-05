@@ -1,0 +1,50 @@
+﻿@page "/pumps/{Id:int}"
+@using PumpStationManagemnet_BlazorApp.DTOs
+@using PumpStationManagemnet_BlazorApp.Models
+@using PumpStationManagemnet_BlazorApp.Services
+@using PumpStationManagemnet_BlazorApp.Enums
+@inject PumpService PumpService
+@inject PumpStationService PumpStationService
+@inject NavigationManager NavigationManager
+
+<h3>Chi Tiết Máy Bơm</h3>
+
+@if (pump == null)
+{
+    <p>Đang tải...</p>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">@pump.PumpName</h5>
+            <p class="card-text"><strong>Mã:</strong> @pump.PumpId</p>
+            <p class="card-text"><strong>Trạm bơm:</strong> @(pumpStations.FirstOrDefault(s => s.StationId == pump.StationId)?.StationName ?? "N/A")</p>
+            <p class="card-text"><strong>Loại máy bơm:</strong>  @EnumHelper.GetDescription((PumpType)pump.PumpType)</p>
+            <p class="card-text"><strong>Công suất:</strong> @pump.Capacity</p>
+            <p class="card-text"><strong>Trạng thái:</strong> @EnumHelper.GetDescription((PumpStatus)pump.Status)</p>
+            <p class="card-text"><strong>Nhà sản xuất:</strong> @pump.Manufacturer</p>
+            <p class="card-text"><strong>Số serial:</strong> @pump.SerialNumber</p>
+            <p class="card-text"><strong>Ngày hết bảo hành:</strong> @pump.WarrantyExpireDate?.ToString("dd/MM/yyyy")</p>
+            <p class="card-text"><strong>Mô tả:</strong> @pump.Description</p>
+            <p class="card-text"><strong>Ngày tạo:</strong> @pump.CreatedOn?.ToString("dd/MM/yyyy")</p>
+            <p class="card-text"><strong>Ngày chỉnh sửa:</strong> @pump.ModifiedOn?.ToString("dd/MM/yyyy")</p>
+        </div>
+    </div>
+    <a class="btn btn-primary mt-3" href="/pumps">Quay lại</a>
+    <a class="btn btn-warning mt-3 ms-2" href="/pumps/edit/@pump.PumpId">Chỉnh sửa</a>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Pump? pump;
+    private List<PumpStation> pumpStations = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        pumpStations = await PumpStationService.GetPumpStationsAsync();
+        pump = await PumpService.GetPumpAsync(Id);
+    }
+}

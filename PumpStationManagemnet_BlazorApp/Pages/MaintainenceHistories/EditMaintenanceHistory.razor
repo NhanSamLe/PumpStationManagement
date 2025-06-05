@@ -1,0 +1,104 @@
+﻿@page "/maintenancehistories/edit/{Id:int}"
+@using PumpStationManagemnet_BlazorApp.DTOs
+@using PumpStationManagemnet_BlazorApp.Models
+@using PumpStationManagemnet_BlazorApp.Services
+@using PumpStationManagemnet_BlazorApp.Enums
+@inject MaintenanceService MaintenanceService
+@inject PumpService PumpService
+@inject UserService UserService
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+<h3>EditMaintenanceHistory</h3>
+
+@if (maintenanceHistory == null)
+{
+    <p>Đang tải...</p>
+}
+else
+{
+    <EditForm Model="@maintenanceHistoryDto" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Máy bơm</label>
+            <InputSelect class="form-control" @bind-Value="maintenanceHistoryDto.PumpId">
+                <option value="">Không chọn</option>
+                @foreach (var pump in pumps)
+                {
+                    <option value="@pump.PumpId">@pump.PumpName</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Loại bảo trì</label>
+            <InputSelect class="form-control" @bind-Value="maintenanceHistoryDto.MaintenanceType">
+                <option value="">Chọn loại bảo trì</option>
+                @foreach (var option in maintainTypes)
+                {
+                    <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Mô tả</label>
+            <InputTextArea class="form-control" @bind-Value="maintenanceHistoryDto.Description" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Ngày bắt đầu</label>
+            <InputDate class="form-control" @bind-Value="maintenanceHistoryDto.StartDate" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Ngày kết thúc</label>
+            <InputDate class="form-control" @bind-Value="maintenanceHistoryDto.EndDate" />
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <a class="btn btn-secondary ms-2" href="/maintenancehistories">Hủy</a>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private MaintenanceHistory? maintenanceHistory;
+    private MaintenanceHistoryDTO maintenanceHistoryDto = new();
+    private List<KeyValuePair<Enum, string>> maintainTypes = new();
+    private List<Pump> pumps = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        maintainTypes = EnumHelper.GetEnumListWithDescriptions<MaintainType>();
+        pumps = await PumpService.GetPumpsAsync();
+        maintenanceHistory = await MaintenanceService.GetMaintenanceHistoryAsync(Id);
+        if (maintenanceHistory != null)
+        {
+            maintenanceHistoryDto = new MaintenanceHistoryDTO
+                {
+                    PumpId = maintenanceHistory.PumpId,
+                    MaintenanceType = maintenanceHistory.MaintenanceType,
+                    StartDate = maintenanceHistory.StartDate,
+                    EndDate = maintenanceHistory.EndDate,
+                    Description = maintenanceHistory.Description,
+                    Status = maintenanceHistory.Status,
+                    PerformedBy = maintenanceHistory.PerformedBy
+                };
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var response = await MaintenanceService.UpdateMaintenanceHistoryAsync(Id, maintenanceHistoryDto);
+        if (response.IsSuccessStatusCode)
+        {
+            await JS.InvokeVoidAsync("alert", "Cập nhật lịch sử bảo trì thành công!");
+            NavigationManager.NavigateTo("/maintenancehistories");
+        }
+        else
+        {
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+        }
+    }
+}

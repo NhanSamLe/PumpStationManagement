@@ -15,5 +15,9 @@ builder.Services.AddScoped(sp => new HttpClient
 });
 // Đăng ký UserService
 builder.Services.AddScoped<UserService>();
-
+builder.Services.AddScoped<PumpStationService>();
+builder.Services.AddScoped<PumpService>();
+builder.Services.AddScoped<OperatingService>();
+builder.Services.AddScoped<MaintenanceService>();
+builder.Services.AddScoped<AlertService>();
 await builder.Build().RunAsync();

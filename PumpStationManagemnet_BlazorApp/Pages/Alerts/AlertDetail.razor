@@ -1,0 +1,47 @@
+﻿@page "/alerts/{Id:int}"
+@using PumpStationManagemnet_BlazorApp.DTOs
+@using PumpStationManagemnet_BlazorApp.Models
+@using PumpStationManagemnet_BlazorApp.Services
+@using PumpStationManagemnet_BlazorApp.Enums
+@inject AlertService AlertService
+@inject PumpStationService PumpStationService
+@inject NavigationManager NavigationManager
+<h3>AlertDetail</h3>
+
+@if (alert == null)
+{
+    <p>Đang tải...</p>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Cảnh báo #@alert.AlertId</h5>
+            <p class="card-text"><strong>Máy bơm:</strong> @(alert.Pump?.PumpName ?? "N/A")</p>
+            <p class="card-text"><strong>Trạm bơm:</strong> @(pumpStations.FirstOrDefault(s => s.StationId == alert.Pump?.StationId)?.StationName ?? "N/A")</p>
+            <p class="card-text"><strong>Loại cảnh báo:</strong> @alert.AlertType</p>
+            <p class="card-text"><strong>Thông điệp:</strong> @alert.AlertMessage</p>
+            <p class="card-text"><strong>Trạng thái:</strong> @(alert.Status == (int)AlertStatus.Active ? "Hoạt động" : alert.Status == (int)AlertStatus.Resolved ? "Đã xử lý" : "Bỏ qua")</p>
+            <p class="card-text"><strong>Người tạo:</strong> @(alert.CreatedByNavigation?.Username ?? "N/A")</p>
+            <p class="card-text"><strong>Ngày tạo:</strong> @alert.CreatedOn?.ToString("dd/MM/yyyy HH:mm")</p>
+            <p class="card-text"><strong>Người chỉnh sửa:</strong> @(alert.ModifiedByNavigation?.Username ?? "N/A")</p>
+            <p class="card-text"><strong>Ngày chỉnh sửa:</strong> @alert.ModifiedOn?.ToString("dd/MM/yyyy HH:mm")</p>
+        </div>
+    </div>
+    <a class="btn btn-primary mt-3" href="/alerts">Quay lại</a>
+    <a class="btn btn-warning mt-3 ms-2" href="/alerts/edit/@alert.AlertId">Chỉnh sửa</a>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Alert? alert;
+    private List<PumpStation> pumpStations = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        pumpStations = await PumpStationService.GetPumpStationsAsync();
+        alert = await AlertService.GetAlertAsync(Id);
+    }
+}

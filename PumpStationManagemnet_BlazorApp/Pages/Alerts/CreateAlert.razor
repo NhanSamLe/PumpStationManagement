@@ -1,0 +1,83 @@
+﻿@page "/alerts/create"
+@using PumpStationManagemnet_BlazorApp.DTOs
+@using PumpStationManagemnet_BlazorApp.Models
+@using PumpStationManagemnet_BlazorApp.Services
+@using PumpStationManagemnet_BlazorApp.Enums
+@inject AlertService AlertService
+@inject PumpService PumpService
+@inject UserService UserService
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+<h3>CreateAlert</h3>
+
+<EditForm Model="@alertDto" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Máy bơm</label>
+        <InputSelect class="form-control" @bind-Value="alertDto.PumpId">
+            <option value="">Không chọn</option>
+            @foreach (var pump in pumps)
+            {
+                <option value="@pump.PumpId">@pump.PumpName</option>
+            }
+        </InputSelect>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Loại cảnh báo</label>
+        <InputNumber class="form-control" @bind-Value="alertDto.AlertType" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Thông điệp</label>
+        <InputTextArea class="form-control" @bind-Value="alertDto.AlertMessage" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Trạng thái</label>
+        <InputSelect class="form-control" @bind-Value="alertDto.Status">
+            <option value="@((int)AlertStatus.Active)">Hoạt động</option>
+            <option value="@((int)AlertStatus.Resolved)">Đã xử lý</option>
+            <option value="@((int)AlertStatus.Ignored)">Bỏ qua</option>
+        </InputSelect>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Người tạo</label>
+        <InputSelect class="form-control" @bind-Value="alertDto.ModifiedBy">
+            <option value="">Không chọn</option>
+            @foreach (var user in users)
+            {
+                <option value="@user.UserId">@user.Username</option>
+            }
+        </InputSelect>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Tạo</button>
+    <a class="btn btn-secondary ms-2" href="/alerts">Hủy</a>
+</EditForm>
+
+@code {
+    private AlertDTO alertDto = new();
+    private List<Pump> pumps = new();
+    private List<User> users = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        pumps = await PumpService.GetPumpsAsync();
+        users = await UserService.GetUsersAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var response = await AlertService.CreateAlertAsync(alertDto);
+        if (response.IsSuccessStatusCode)
+        {
+            await JS.InvokeVoidAsync("alert", "Tạo cảnh báo thành công!");
+            NavigationManager.NavigateTo("/alerts");
+        }
+        else
+        {
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+        }
+    }
+}

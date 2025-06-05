@@ -1,0 +1,157 @@
+﻿@page "/maintenancehistories"
+@using PumpStationManagemnet_BlazorApp.DTOs
+@using PumpStationManagemnet_BlazorApp.Models
+@using PumpStationManagemnet_BlazorApp.Enums    
+@using PumpStationManagemnet_BlazorApp.Services
+@inject MaintenanceService MaintenanceService
+@inject PumpStationService PumpStationService
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+<h3>Lịch sử bảo trì</h3>
+
+<div class="mb-3">
+    <div class="row">
+        <div class="col-md-6">
+            <input type="text" class="form-control" @bind="keyword" placeholder="Tìm kiếm theo tên máy bơm hoặc mô tả..." />
+        </div>
+        <div class="col-md-4">
+            <InputSelect class="form-control" @bind-Value="stationId">
+                <option value="">Tất cả trạm bơm</option>
+                @foreach (var station in pumpStations)
+                {
+                    <option value="@station.StationId">@station.StationName</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-primary" @onclick="SearchMaintenanceHistories">Tìm kiếm</button>
+        </div>
+    </div>
+    <a class="btn btn-success mt-2" href="/maintenancehistories/create">Thêm lịch sử bảo trì</a>
+</div>
+
+@if (maintenanceHistories == null)
+{
+    <p>Đang tải...</p>
+}
+else if (!maintenanceHistories.Any())
+{
+    <p>Không tìm thấy lịch sử bảo trì nào.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Mã</th>
+                <th>Máy bơm</th>
+                <th>Loại bảo trì</th>
+                <th>Ngày bắt đầu</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var history in maintenanceHistories)
+            {
+                <tr>
+                    <td>@history.MaintenanceId</td>
+                    <td>@(history.Pump?.PumpName ?? "N/A")</td>
+                    <td>@EnumHelper.GetDescription((MaintainType)history.MaintenanceType)</td>
+                    <td>@history.StartDate.ToString("dd/MM/yyyy")</td>
+                    <td>@EnumHelper.GetDescription((MaintainStatus)history.Status)</td>
+                    <td>
+                        <a class="btn btn-info btn-sm" href="/maintenancehistories/@history.MaintenanceId">Chi tiết</a>
+                        <a class="btn btn-warning btn-sm" href="/maintenancehistories/edit/@history.MaintenanceId">Sửa</a>
+
+                        @if (history.Status == (int)MaintainStatus.Scheduled)
+                        {
+                            <button class="btn btn-success btn-sm" @onclick="() => StartMaintenance(history.MaintenanceId)">Xử lý bảo trì</button>
+                        }
+
+                        @if (history.Status != (int)MaintainStatus.Completed)
+                        {
+                            <button class="btn btn-primary btn-sm" @onclick="() => CompleteMaintenance(history.MaintenanceId)">Hoàn thành</button>
+                        }
+
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteMaintenance(history.MaintenanceId)">Xóa</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<MaintenanceHistory>? maintenanceHistories;
+    private List<PumpStation> pumpStations = new();
+    private string keyword = string.Empty;
+    private int? stationId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        pumpStations = await PumpStationService.GetPumpStationsAsync();
+        maintenanceHistories = await MaintenanceService.GetMaintenanceHistoriesAsync();
+    }
+
+    private async Task SearchMaintenanceHistories()
+    {
+        maintenanceHistories = await MaintenanceService.GetMaintenanceHistoriesAsync(keyword, stationId);
+    }
+
+    private async Task DeleteMaintenance(int id)
+    {
+        var confirm = await JS.InvokeAsync<bool>("confirm", "Bạn có chắc muốn xóa lịch sử bảo trì này?");
+        if (confirm)
+        {
+            var response = await MaintenanceService.DeleteMaintenanceHistoryAsync(id, 1); // Assume ModifiedBy = 1
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Xóa lịch sử bảo trì thành công!");
+                maintenanceHistories = await MaintenanceService.GetMaintenanceHistoriesAsync(keyword, stationId);
+            }
+            else
+            {
+                var errorMessage = await response.Content.ReadAsStringAsync();
+                await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+            }
+        }
+    }
+
+    private async Task CompleteMaintenance(int id)
+    {
+        var confirm = await JS.InvokeAsync<bool>("confirm", "Bạn có muốn đánh dấu lịch sử bảo trì này là hoàn thành?");
+        if (confirm)
+        {
+            var response = await MaintenanceService.CompleteMaintenanceHistoryAsync(id, 1); // Assume ModifiedBy = 1
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Cập nhật trạng thái bảo trì thành công!");
+                maintenanceHistories = await MaintenanceService.GetMaintenanceHistoriesAsync(keyword, stationId);
+            }
+            else
+            {
+                var errorMessage = await response.Content.ReadAsStringAsync();
+                await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+            }
+        }
+    }
+    private async Task StartMaintenance(int id)
+    {
+        var confirm = await JS.InvokeAsync<bool>("confirm", "Bạn có muốn bắt đầu bảo trì ?");
+        if (confirm)
+        {
+            var response = await MaintenanceService.ActiveMaintenanceHistoryAsync(id, 1); // Assume ModifiedBy = 1
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Cập nhật trạng thái bảo trì thành công!");
+                maintenanceHistories = await MaintenanceService.GetMaintenanceHistoriesAsync(keyword, stationId);
+            }
+            else
+            {
+                var errorMessage = await response.Content.ReadAsStringAsync();
+                await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+            }
+        }
+    }
+}

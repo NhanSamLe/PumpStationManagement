@@ -1,0 +1,51 @@
+﻿@page "/operatings/{Id:int}"
+@using PumpStationManagemnet_BlazorApp.DTOs
+@using PumpStationManagemnet_BlazorApp.Models
+@using PumpStationManagemnet_BlazorApp.Services
+@using PumpStationManagemnet_BlazorApp.Enums
+@inject OperatingService OperatingService
+@inject PumpStationService PumpStationService
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+<h3>OperatingDetail</h3>
+
+@if (operatingDatum == null)
+{
+<p>Đang tải...</p>
+}
+else
+{
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Dữ liệu vận hành : @operatingDatum.DataId</h5>
+        <p class="card-text"><strong>Máy bơm:</strong> @(operatingDatum.Pump?.PumpName ?? "N/A")</p>
+        <p class="card-text"><strong>Trạm bơm:</strong> @(pumpStations.FirstOrDefault(s => s.StationId == operatingDatum.Pump?.StationId)?.StationName ?? "N/A")</p>
+        <p class="card-text"><strong>Thời gian ghi:</strong> @operatingDatum.RecordTime.ToString("dd/MM/yyyy HH:mm")</p>
+        <p class="card-text"><strong>Lưu lượng:</strong> @operatingDatum.FlowRate</p>
+        <p class="card-text"><strong>Áp suất:</strong> @operatingDatum.Pressure</p>
+        <p class="card-text"><strong>Công suất tiêu thụ:</strong> @operatingDatum.PowerConsumption</p>
+        <p class="card-text"><strong>Nhiệt độ:</strong> @operatingDatum.Temperature</p>
+        <p class="card-text"><strong>Số giờ vận hành:</strong> @operatingDatum.RunningHours</p>
+        <p class="card-text"><strong>Hiệu suất:</strong> @operatingDatum.Efficiency</p>
+        <p class="card-text"><strong>Trạng thái:</strong> @EnumHelper.GetDescription((OperatingStatus)operatingDatum.Status)</p>
+        <p class="card-text"><strong>Ngày tạo:</strong> @operatingDatum.CreatedOn?.ToString("dd/MM/yyyy")</p>
+        <p class="card-text"><strong>Ngày chỉnh sửa:</strong> @operatingDatum.ModifiedOn?.ToString("dd/MM/yyyy")</p>
+    </div>
+</div>
+<a class="btn btn-primary mt-3" href="/operatings">Quay lại</a>
+<a class="btn btn-warning mt-3 ms-2" href="/operatings/edit/@operatingDatum.DataId">Chỉnh sửa</a>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private OperatingData? operatingDatum;
+    private List<PumpStation> pumpStations = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        pumpStations = await PumpStationService.GetPumpStationsAsync();
+        operatingDatum = await OperatingService.GetOperatingDatumAsync(Id);
+    }
+}

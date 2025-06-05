@@ -1,0 +1,143 @@
+﻿@page "/pumps/edit/{Id:int}"
+@using PumpStationManagemnet_BlazorApp.DTOs
+@using PumpStationManagemnet_BlazorApp.Models
+@using PumpStationManagemnet_BlazorApp.Services
+@using PumpStationManagemnet_BlazorApp.Enums
+@inject PumpService PumpService
+@inject PumpStationService PumpStationService
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+
+<h3 class="text-center mb-3">Chỉnh sửa thông tin máy bơm</h3>
+
+@if (pump == null)
+{
+    <p>Đang tải...</p>
+}
+else
+{
+    <EditForm Model="@pumpDto" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Tên máy bơm</label>
+            <InputText class="form-control" @bind-Value="pumpDto.PumpName" />
+
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Trạm bơm</label>
+            <InputSelect class="form-control" @bind-Value="pumpDto.StationId">
+                <option value="">Chọn trạm bơm</option>
+                @foreach (var station in pumpStations)
+                {
+                    <option value="@station.StationId">@station.StationName</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Loại máy bơm</label>
+            <InputSelect class="form-control" @bind-Value="pumpDto.PumpType">
+                @foreach (var option in pumpTypes)
+                {
+                    <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
+                }
+            </InputSelect>
+
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Công suất</label>
+            <InputNumber class="form-control" @bind-Value="pumpDto.Capacity" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Nhà sản xuất</label>
+            <InputText class="form-control" @bind-Value="pumpDto.Manufacturer" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Số serial</label>
+            <InputText class="form-control" @bind-Value="pumpDto.SerialNumber" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Ngày hết bảo hành</label>
+            <InputDate class="form-control" @bind-Value="pumpDto.WarrantyExpireDate" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Mô tả</label>
+            <InputTextArea class="form-control" @bind-Value="pumpDto.Description" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Trạng thái</label>
+            <InputSelect class="form-control" @bind-Value="pumpDto.Status">
+                @foreach (var option in pumpStatus)
+                {
+                    <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Người chỉnh sửa (ID)</label>
+            <InputNumber class="form-control" @bind-Value="pumpDto.ModifiedBy" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <button type="button" class="btn btn-warning ms-2" @onclick="ResetTextFields">Đặt lại</button>
+        <a class="btn btn-secondary ms-2" href="/pumps">Hủy</a>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Pump? pump;
+    private PumpDTO pumpDto = new();
+    private List<PumpStation> pumpStations = new();
+    private List<KeyValuePair<Enum, string>> pumpTypes = new();
+    private List<KeyValuePair<Enum, string>> pumpStatus = new();
+    protected override async Task OnInitializedAsync()
+    {
+        pumpTypes = EnumHelper.GetEnumListWithDescriptions<PumpType>();
+        pumpStatus = EnumHelper.GetEnumListWithDescriptions<PumpStatus>();
+        pumpStations = await PumpStationService.GetPumpStationsAsync();
+        pump = await PumpService.GetPumpAsync(Id);
+        if (pump != null)
+        {
+            pumpDto = new PumpDTO
+                {
+                    StationId = pump.StationId ?? 0,
+                    PumpName = pump.PumpName,
+                    PumpType = pump.PumpType,
+                    Capacity = pump.Capacity,
+                    Status = pump.Status,
+                    Manufacturer = pump.Manufacturer,
+                    SerialNumber = pump.SerialNumber,
+                    WarrantyExpireDate = pump.WarrantyExpireDate,
+                    Description = pump.Description,
+                    ModifiedBy = pump.ModifiedBy
+                };
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var response = await PumpService.UpdatePumpAsync(Id, pumpDto);
+        if (response.IsSuccessStatusCode)
+        {
+            await JS.InvokeVoidAsync("alert", "Cập nhật máy bơm thành công!");
+            NavigationManager.NavigateTo("/pumps");
+        }
+        else
+        {
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+        }
+
+    }
+    private void ResetTextFields()
+    {
+        pumpDto.PumpName = string.Empty;
+        pumpDto.Manufacturer = string.Empty;
+        pumpDto.SerialNumber = string.Empty;
+        pumpDto.Description = string.Empty;
+    }
+}

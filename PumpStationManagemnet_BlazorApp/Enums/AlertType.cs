@@ -1,25 +1,25 @@
 ﻿using System.ComponentModel;
 
-namespace PumpStationManagemnet_BlazorApp.Enums;
-
-enum AlertType
+namespace PumpStationManagemnet_BlazorApp.Enums
 {
-    /// <summary>
-    /// Critical
-    /// </summary>
-    [Description("Khẩn cấp")]
-    Critical = 0,
+    enum AlertType
+    {
+        /// <summary>
+        /// Critical
+        /// </summary>
+        [Description("Khẩn cấp")]
+        Critical = 0,
 
-    /// <summary>
-    /// Warning
-    /// </summary>
-    [Description("Cảnh báo")]
-    Warning = 1,
+        /// <summary>
+        /// Warning
+        /// </summary>
+        [Description("Cảnh báo")]
+        Warning = 1,
 
-    /// <summary>
-    /// Info
-    /// </summary>
-    [Description("Thông tin")]
-    Info = 2,
+        /// <summary>
+        /// Info
+        /// </summary>
+        [Description("Thông tin")]
+        Info = 2,
+    }
 }
-

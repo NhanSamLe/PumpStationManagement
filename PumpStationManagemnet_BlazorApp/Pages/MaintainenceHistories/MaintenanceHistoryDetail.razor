@@ -1,0 +1,48 @@
+﻿@page "/maintenancehistories/{Id:int}"
+@using PumpStationManagemnet_BlazorApp.DTOs
+@using PumpStationManagemnet_BlazorApp.Models
+@using PumpStationManagemnet_BlazorApp.Services
+@using PumpStationManagemnet_BlazorApp.Enums
+@inject MaintenanceService MaintenanceService
+@inject PumpStationService PumpStationService
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+<h3>MaintenanceHistoryDetail</h3>
+
+@if (maintenanceHistory == null)
+{
+    <p>Đang tải...</p>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Lịch sử bảo trì : Mã @maintenanceHistory.MaintenanceId</h5>
+            <p class="card-text"><strong>Máy bơm:</strong> @(maintenanceHistory.Pump?.PumpName ?? "N/A")</p>
+            <p class="card-text"><strong>Trạm bơm:</strong> @(pumpStations.FirstOrDefault(s => s.StationId == maintenanceHistory.Pump?.StationId)?.StationName ?? "N/A")</p>
+            <p class="card-text"><strong>Loại bảo trì:</strong> @EnumHelper.GetDescription((MaintainType)maintenanceHistory.MaintenanceType)</p>
+            <p class="card-text"><strong>Nội Dung:</strong> @maintenanceHistory.Description</p>
+            <p class="card-text"><strong>Ngày bắt đầu:</strong> @maintenanceHistory.StartDate.ToString("dd/MM/yyyy")</p>
+            <p class="card-text"><strong>Ngày kết thúc:</strong> @(maintenanceHistory.EndDate?.ToString("dd/MM/yyyy") ?? "Chưa hoàn thành")</p>
+            <p class="card-text"><strong>Trạng thái:</strong> @EnumHelper.GetDescription((MaintainStatus)maintenanceHistory.Status)</p>
+            <p class="card-text"><strong>Người thực hiện:</strong> @(maintenanceHistory.PerformedByNavigation?.Username ?? "N/A")</p>
+            <p class="card-text"><strong>Ngày tạo:</strong> @maintenanceHistory.CreatedOn?.ToString("dd/MM/yyyy")</p>
+        </div>
+    </div>
+    <a class="btn btn-primary mt-3" href="/maintenancehistories">Quay lại</a>
+    <a class="btn btn-warning mt-3 ms-2" href="/maintenancehistories/edit/@maintenanceHistory.MaintenanceId">Chỉnh sửa</a>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private MaintenanceHistory? maintenanceHistory;
+    private List<PumpStation> pumpStations = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        pumpStations = await PumpStationService.GetPumpStationsAsync();
+        maintenanceHistory = await MaintenanceService.GetMaintenanceHistoryAsync(Id);
+    }
+}

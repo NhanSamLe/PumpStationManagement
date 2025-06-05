@@ -1,25 +1,25 @@
 ﻿using System.ComponentModel;
 
-namespace PumpStationManagemnet_BlazorApp.Enums;
-
-enum PumpStatus
+namespace PumpStationManagemnet_BlazorApp.Enums
 {
-    /// <summary>
-    /// Active
-    /// </summary>
-    [Description("Đang hoạt động")]
-    Active = 0,
+    enum PumpStatus
+    {
+        /// <summary>
+        /// Active
+        /// </summary>
+        [Description("Đang hoạt động")]
+        Active = 0,
 
-    /// <summary>
-    /// Maintenance
-    /// </summary>
-    [Description("Bảo trì")]
-    Maintenance = 1,
+        /// <summary>
+        /// Maintenance
+        /// </summary>
+        [Description("Bảo trì")]
+        Maintenance = 1,
 
-    /// <summary>
-    /// Inactive
-    /// </summary>
-    [Description("Ngừng hoạt động")]
-    Inactive = 2,
+        /// <summary>
+        /// Inactive
+        /// </summary>
+        [Description("Ngừng hoạt động")]
+        Inactive = 2,
+    }
 }
-

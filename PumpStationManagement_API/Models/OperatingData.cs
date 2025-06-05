@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace PumpStationManagement_API.Models
 {
@@ -36,6 +37,7 @@ namespace PumpStationManagement_API.Models
 
         public DateTime? ModifiedOn { get; set; }
 
+      
         [ForeignKey(nameof(PumpId))]
         public virtual Pump? Pump { get; set; }
     }

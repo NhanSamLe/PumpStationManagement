@@ -1,0 +1,42 @@
+﻿@page "/pumpstations/{Id:int}"
+@using PumpStationManagemnet_BlazorApp.DTOs
+@using PumpStationManagemnet_BlazorApp.Models
+@using PumpStationManagemnet_BlazorApp.Enums
+@using PumpStationManagemnet_BlazorApp.Services
+@inject PumpStationService PumpStationService
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+<h3>Chi Tiết Trạm Bơm</h3>
+
+@if (pumpStation == null)
+{
+    <p>Đang tải...</p>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">@pumpStation.StationName</h5>
+            <p class="card-text"><strong>Mã:</strong> @pumpStation.StationId</p>
+            <p class="card-text"><strong>Vị trí:</strong> @pumpStation.Location</p>
+            <p class="card-text"><strong>Mô tả:</strong> @pumpStation.Description</p>
+            <p class="card-text"><strong>Trạng thái:</strong> @EnumHelper.GetDescription((StationStatus)pumpStation.Status)</p>
+            <p class="card-text"><strong>Ngày tạo:</strong> @pumpStation.CreatedOn?.ToString("dd/MM/yyyy")</p>
+            <p class="card-text"><strong>Ngày chỉnh sửa:</strong> @pumpStation.ModifiedOn?.ToString("dd/MM/yyyy")</p>
+        </div>
+    </div>
+    <a class="btn btn-primary mt-3" href="/pumpstations">Quay lại</a>
+    <a class="btn btn-warning mt-3 ms-2" href="/pumpstations/edit/@pumpStation.StationId">Chỉnh sửa</a>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private PumpStation? pumpStation;
+
+    protected override async Task OnInitializedAsync()
+    {
+        pumpStation = await PumpStationService.GetPumpStationAsync(Id);
+    }
+}

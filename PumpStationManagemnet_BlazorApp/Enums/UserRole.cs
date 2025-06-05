@@ -1,19 +1,19 @@
 ﻿using System.ComponentModel;
 
-namespace PumpStationManagemnet_BlazorApp.Enums;
-
-enum UserRole
+namespace PumpStationManagemnet_BlazorApp.Enums
 {
-    /// <summary>
-    /// User
-    /// </summary>
-    [Description("Người dùng")]
-    User = 0,
+    enum UserRole
+    {
+        /// <summary>
+        /// User
+        /// </summary>
+        [Description("Người dùng")]
+        User = 0,
 
-    /// <summary>
-    /// Admin
-    /// </summary>
-    [Description("Quản trị viên")]
-    Admin = 1,
+        /// <summary>
+        /// Admin
+        /// </summary>
+        [Description("Quản trị viên")]
+        Admin = 1,
+    }
 }
-

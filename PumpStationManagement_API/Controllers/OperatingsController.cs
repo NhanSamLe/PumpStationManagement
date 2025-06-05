@@ -14,7 +14,7 @@ namespace PumpStationManagement_API.Controllers
         private readonly ApplicationDBContext context;
         public OperatingsController(ApplicationDBContext context)
         {
-            context = context;
+            this.context = context;
         }
         [HttpGet]
         public async Task<ActionResult<List<OperatingData>>> GetOperatingData([FromQuery] string? keyword = null, [FromQuery] int? stationId = null)

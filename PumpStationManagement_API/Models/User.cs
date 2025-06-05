@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 namespace PumpStationManagement_API.Models
 {
     [Index(nameof(Email), IsUnique = true)]
@@ -49,10 +50,13 @@ namespace PumpStationManagement_API.Models
 
         // Navigation properties
 
+        [JsonIgnore]
         public virtual ICollection<Alert> AlertCreatedByNavigations { get; set; } = new List<Alert>();
 
+        [JsonIgnore]
         public virtual ICollection<Alert> AlertModifiedByNavigations { get; set; } = new List<Alert>();
 
+        [JsonIgnore]
         public virtual ICollection<MaintenanceHistory> MaintenanceHistories { get; set; } = new List<MaintenanceHistory>();
 
         public virtual ICollection<Pump> PumpCreatedByNavigations { get; set; } = new List<Pump>();

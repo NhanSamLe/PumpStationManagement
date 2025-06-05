@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PumpStationManagement_API.DTOs;
+using PumpStationManagement_API.Enums;
 using PumpStationManagement_API.Models;
 using PumpStationManagement_API.Services;
 
@@ -15,7 +16,7 @@ namespace PumpStationManagement_API.Controllers
 
         public MaintenanceHistoryController(ApplicationDBContext context)
         {
-            context = context;
+            this.context = context;
         }
         // GET: api/MaintenanceHistory
         [HttpGet]
@@ -228,15 +229,42 @@ namespace PumpStationManagement_API.Controllers
                     return NotFound(new { message = "Không tìm thấy lịch sử bảo trì" });
                 }
 
-                if (maintenanceHistory.Status == 2) // 2 = Completed
+                if (maintenanceHistory.Status == (int)MaintainStatus.Completed) // 2 = Completed
                 {
                     return BadRequest(new { message = "Lịch sử bảo trì đã hoàn thành" });
                 }
 
-                maintenanceHistory.Status = 2; // 2 = Completed
+                maintenanceHistory.Status = (int)MaintainStatus.Completed; // 2 = Completed
                 maintenanceHistory.EndDate = DateTime.Now;
                 maintenanceHistory.PerformedBy = modifiedBy;
+                await context.SaveChangesAsync();
+                return Ok(new { message = "Cập nhật trạng thái bảo trì thành công" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi cập nhật trạng thái bảo trì", error = ex.Message });
+            }
+        }
+        [HttpPatch("{id}/active")]
+        public async Task<ActionResult> ActiveMaintenanceHistory(int id, [FromQuery] int modifiedBy)
+        {
+            try
+            {
+                var maintenanceHistory = await context.MaintenanceHistories
+                    .FirstOrDefaultAsync(m => m.MaintenanceId == id && !m.IsDelete);
 
+                if (maintenanceHistory == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy lịch sử bảo trì" });
+                }
+
+                if (maintenanceHistory.Status == (int)MaintainStatus.InProgress) // 2 = Completed
+                {
+                    return BadRequest(new { message = "Lịch sử bảo trì đang được xử lý rồi" });
+                }
+
+                maintenanceHistory.Status = (int)MaintainStatus.InProgress; // 2 = Completed
+                maintenanceHistory.PerformedBy = modifiedBy;
                 await context.SaveChangesAsync();
                 return Ok(new { message = "Cập nhật trạng thái bảo trì thành công" });
             }

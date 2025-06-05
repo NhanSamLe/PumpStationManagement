@@ -16,7 +16,7 @@ namespace PumpStationManagement_API.Controllers
 
         public AlertsController(ApplicationDBContext context)
         {
-            context = context;
+            this.context = context;
         }
 
         [HttpGet]

@@ -1,0 +1,54 @@
+﻿@page "/pumpstations/create"
+@using PumpStationManagemnet_BlazorApp.DTOs
+@using PumpStationManagemnet_BlazorApp.Models
+@using PumpStationManagemnet_BlazorApp.Services
+@using PumpStationManagemnet_BlazorApp.Enums
+@inject PumpStationService PumpStationService
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+
+<h3 class="text-center mb-3">Tạo trạm bơm mới</h3>
+
+<EditForm Model="@stationDto" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Tên trạm bơm</label>
+        <InputText class="form-control" @bind-Value="stationDto.StationName" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Vị trí</label>
+        <InputText class="form-control" @bind-Value="stationDto.Location" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Mô tả</label>
+        <InputTextArea class="form-control" @bind-Value="stationDto.Description" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Người chỉnh sửa (ID)</label>
+        <InputNumber class="form-control" @bind-Value="stationDto.ModifiedBy" />
+    </div>
+    <button type="submit" class="btn btn-primary">Tạo</button>
+    <a class="btn btn-secondary ms-2" href="/pumpstations">Hủy</a>
+</EditForm>
+
+@code {
+    private PumpStationDTO stationDto = new();
+    private List<KeyValuePair<Enum, string>> statusOptions = EnumHelper.GetEnumListWithDescriptions<StationStatus>();
+    private async Task HandleValidSubmit()
+    {
+        stationDto.Status = (int)StationStatus.Active;
+        var response = await PumpStationService.CreatePumpStationAsync(stationDto);
+        if (response.IsSuccessStatusCode)
+        {
+            await JS.InvokeVoidAsync("alert", "Tạo trạm bơm thành công!");
+            NavigationManager.NavigateTo("/pumpstations");
+        }
+        else
+        {
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+        }
+    }
+}

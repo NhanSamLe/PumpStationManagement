@@ -1,0 +1,93 @@
+﻿@page "/pumpstations/edit/{Id:int}"
+@using PumpStationManagemnet_BlazorApp.DTOs
+@using PumpStationManagemnet_BlazorApp.Models
+@using PumpStationManagemnet_BlazorApp.Enums
+@using PumpStationManagemnet_BlazorApp.Services
+@inject PumpStationService PumpStationService
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+
+<h3 class="text-center mb-3">Chỉnh sửa trạm bơm</h3>
+
+@if (pumpStation == null)
+{
+    <p>Đang tải...</p>
+}
+else
+{
+    <EditForm Model="@stationDto" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Tên trạm bơm</label>
+            <InputText class="form-control" @bind-Value="stationDto.StationName" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Vị trí</label>
+            <InputText class="form-control" @bind-Value="stationDto.Location" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Mô tả</label>
+            <InputTextArea class="form-control" @bind-Value="stationDto.Description" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Trạng thái</label>
+            <InputSelect class="form-control" @bind-Value="stationDto.Status">
+                @foreach (var option in statusOptions)
+                {
+                    <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Người chỉnh sửa (ID)</label>
+            <InputNumber class="form-control" @bind-Value="stationDto.ModifiedBy" />
+        </div>
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <a class="btn btn-secondary ms-2" href="/pumpstations">Hủy</a>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private PumpStation? pumpStation;
+    private PumpStationDTO stationDto = new();
+    private List<KeyValuePair<Enum, string>> statusOptions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        pumpStation = await PumpStationService.GetPumpStationAsync(Id);
+        if (pumpStation != null)
+        {
+            stationDto = new PumpStationDTO
+                {
+                    StationName = pumpStation.StationName,
+                    Location = pumpStation.Location,
+                    Description = pumpStation.Description,
+                    Status = pumpStation.Status,
+                    ModifiedBy = pumpStation.ModifiedBy
+                };
+            statusOptions = EnumHelper.GetEnumListWithDescriptions<StationStatus>();
+
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+
+        var response = await PumpStationService.UpdatePumpStationAsync(Id, stationDto);
+        if (response.IsSuccessStatusCode)
+        {
+            await JS.InvokeVoidAsync("alert", "Cập nhật trạm bơm thành công!");
+            NavigationManager.NavigateTo("/pumpstations");
+        }
+        else
+        {
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+        }
+    }
+}

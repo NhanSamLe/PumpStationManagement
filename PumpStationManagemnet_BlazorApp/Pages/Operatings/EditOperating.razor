@@ -1,0 +1,112 @@
+﻿@page "/operatings/edit/{Id:int}"
+@using PumpStationManagemnet_BlazorApp.DTOs
+@using PumpStationManagemnet_BlazorApp.Models
+@using PumpStationManagemnet_BlazorApp.Services
+@using PumpStationManagemnet_BlazorApp.Enums
+@using PumpStationManagemnet_BlazorApp.Public
+@inject OperatingService OperatingService
+@inject PumpService PumpService
+@inject PumpStationService PumpStationService
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+<h3>EditOperating</h3>
+@if (operatingDatum == null)
+{
+    <p>Đang tải...</p>
+}
+else
+{
+    <EditForm Model="@operatingDataDto" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Máy bơm</label>
+            <InputSelect class="form-control" @bind-Value="operatingDataDto.PumpId">
+                <option value="">Chọn máy bơm</option>
+                @foreach (var pump in pumps)
+                {
+                    <option value="@pump.PumpId">@pump.PumpName</option>
+                }
+            </InputSelect>
+        </div>
+       
+        <div class="mb-3">
+            <label class="form-label">Lưu lượng</label>
+            <InputNumber class="form-control" @bind-Value="operatingDataDto.FlowRate" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Áp suất</label>
+            <InputNumber class="form-control" @bind-Value="operatingDataDto.Pressure" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Công suất tiêu thụ</label>
+            <InputNumber class="form-control" @bind-Value="operatingDataDto.PowerConsumption" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Nhiệt độ</label>
+            <InputNumber class="form-control" @bind-Value="operatingDataDto.Temperature" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Số giờ vận hành</label>
+            <InputNumber class="form-control" @bind-Value="operatingDataDto.RunningHours" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Thời gian ghi nhận</label>
+            <InputDate class="form-control" @bind-Value="operatingDataDto.RecordTime" />
+        </div>
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <a class="btn btn-secondary ms-2" href="/operatings">Hủy</a>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private OperatingData? operatingDatum;
+    private OperatingDataDTO operatingDataDto = new();
+    private List<Pump> pumps = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        pumps = await PumpService.GetPumpsAsync();
+        operatingDatum = await OperatingService.GetOperatingDatumAsync(Id);
+        if (operatingDatum != null)
+        {
+            operatingDataDto = new OperatingDataDTO
+            {
+                PumpId = operatingDatum.PumpId ?? 0,
+                RecordTime = operatingDatum.RecordTime,
+                FlowRate = operatingDatum.FlowRate,
+                Pressure = operatingDatum.Pressure,
+                PowerConsumption = operatingDatum.PowerConsumption,
+                Temperature = operatingDatum.Temperature,
+                RunningHours = operatingDatum.RunningHours,
+                Efficiency = operatingDatum.Efficiency,
+                Status = operatingDatum.Status
+            };
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        operatingDataDto.Efficiency = CaculateHelper.CaculateEfficiency(
+        operatingDataDto.FlowRate ?? 0,
+        operatingDataDto.Pressure ?? 0,
+        operatingDataDto.PowerConsumption ?? 0
+        );
+        operatingDataDto.Status = CaculateHelper.EfficiencyStatus(operatingDataDto.Efficiency ?? 0);
+        var response = await OperatingService.UpdateOperatingDatumAsync(Id, operatingDataDto);
+        if (response.IsSuccessStatusCode)
+        {
+            await JS.InvokeVoidAsync("alert", "Cập nhật dữ liệu vận hành thành công!");
+            NavigationManager.NavigateTo("/operatings");
+        }
+        else
+        {
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+        }
+    }
+}

@@ -1,0 +1,118 @@
+﻿@page "/pumps"
+@using PumpStationManagemnet_BlazorApp.DTOs
+@using PumpStationManagemnet_BlazorApp.Models
+@using PumpStationManagemnet_BlazorApp.Services
+@using PumpStationManagemnet_BlazorApp.Enums
+@inject PumpService PumpService
+@inject PumpStationService PumpStationService
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+
+<h3 class="text-center mb-3">Quản lý trạm bơm</h3>
+
+<div class="mb-3">
+    <div class="row">
+        <div class="col-md-6">
+            <input type="text" class="form-control" @bind="keyword" placeholder="Tìm kiếm theo tên hoặc số serial..." />
+        </div>
+        <div class="col-md-4">
+            <InputSelect class="form-control" @bind-Value="stationId">
+                <option value="">Tất cả trạm bơm</option>
+                @foreach (var station in pumpStations)
+                {
+                    <option value="@station.StationId">@station.StationName</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-primary" @onclick="SearchPumps">Tìm kiếm</button>
+        </div>
+    </div>
+    <a class="btn btn-success mt-2" href="/pumps/create">Tạo máy bơm mới</a>
+</div>
+
+@if (pumps == null)
+{
+    <p>Đang tải...</p>
+}
+else if (!pumps.Any())
+{
+    <p>Không tìm thấy máy bơm nào.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Mã</th>
+                <th>Tên máy bơm</th>
+                <th>Loại bơm</th>
+                <th>Trạm bơm</th>
+                <th>Công suất</th>
+                <th>Trạng thái</th>
+                <th>NSX</th>
+                <th>Số Seri</th>
+                <th>Hạn Bảo Hành</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var pump in pumps)
+            {
+                <tr>
+                    <td>@pump.PumpId</td>
+                    <td>@pump.PumpName</td>
+                    <td>@EnumHelper.GetDescription((PumpType)pump.PumpType)</td>
+                    <td>@(pumpStations.FirstOrDefault(s => s.StationId == pump.StationId)?.StationName ?? "N/A")</td>
+                    <td>@pump.Capacity</td>
+                    <td>@EnumHelper.GetDescription((PumpStatus)pump.Status)</td>
+                    <td>@pump.Manufacturer</td>
+                    <td>@pump.SerialNumber</td>
+                    <td>@pump.WarrantyExpireDate</td>
+                    <td>
+                        <a class="btn btn-info btn-sm" href="/pumps/@pump.PumpId">Chi tiết</a>
+                        <a class="btn btn-warning btn-sm" href="/pumps/edit/@pump.PumpId">Sửa</a>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeletePump(pump.PumpId)">Xóa</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Pump>? pumps;
+    private List<PumpStation> pumpStations = new();
+    private string keyword = string.Empty;
+    private int? stationId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        pumpStations = await PumpStationService.GetPumpStationsAsync();
+        pumps = await PumpService.GetPumpsAsync();
+    }
+
+    private async Task SearchPumps()
+    {
+        pumps = await PumpService.GetPumpsAsync(keyword, stationId);
+    }
+
+    private async Task DeletePump(int id)
+    {
+        var confirm = await JS.InvokeAsync<bool>("confirm", "Bạn có chắc muốn xóa máy bơm này?");
+        if (confirm)
+        {
+            var response = await PumpService.DeletePumpAsync(id, 1); // Giả sử ModifiedBy = 1
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Xóa máy bơm thành công!");
+                pumps = await PumpService.GetPumpsAsync(keyword, stationId);
+            }
+            else
+            {
+                var errorMessage = await response.Content.ReadAsStringAsync();
+                await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+            }
+        }
+    }
+}

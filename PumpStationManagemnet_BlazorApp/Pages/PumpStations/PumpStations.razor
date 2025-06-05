@@ -1,0 +1,91 @@
+﻿@page "/pumpstations"
+@using PumpStationManagemnet_BlazorApp.DTOs
+@using PumpStationManagemnet_BlazorApp.Models
+@using PumpStationManagemnet_BlazorApp.Services
+@using PumpStationManagemnet_BlazorApp.Enums
+@inject PumpStationService PumpStationService
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+
+<h3 class="text-center mb-3">Quản lý trạm bơm</h3>
+
+<div class="mb-3">
+    <input type="text" class="form-control" @bind="keyword" placeholder="Tìm kiếm theo tên hoặc vị trí..." />
+    <button class="btn btn-primary mt-2" @onclick="SearchPumpStations">Tìm kiếm</button>
+    <a class="btn btn-success mt-2 ms-2" href="/pumpstations/create">Tạo trạm bơm mới</a>
+</div>
+
+@if (pumpStations == null)
+{
+    <p>Đang tải...</p>
+}
+else if (!pumpStations.Any())
+{
+    <p>Không tìm thấy trạm bơm nào.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Mã</th>
+                <th>Tên trạm bơm</th>
+                <th>Vị trí</th>
+                <th>Mô tả</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var station in pumpStations)
+            {
+                <tr>
+                    <td>@station.StationId</td>
+                    <td>@station.StationName</td>
+                    <td>@station.Location</td>
+                    <td>@station.Description</td>
+                    <td>@EnumHelper.GetDescription((StationStatus)station.Status)</td>
+                    <td>
+                        <a class="btn btn-info btn-sm" href="/pumpstations/@station.StationId">Chi tiết</a>
+                        <a class="btn btn-warning btn-sm" href="/pumpstations/edit/@station.StationId">Sửa</a>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeletePumpStation(station.StationId)">Xóa</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<PumpStation>? pumpStations;
+    private string keyword = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        pumpStations = await PumpStationService.GetPumpStationsAsync();
+    }
+
+    private async Task SearchPumpStations()
+    {
+        pumpStations = await PumpStationService.GetPumpStationsAsync(keyword);
+    }
+
+    private async Task DeletePumpStation(int id)
+    {
+        var confirm = await JS.InvokeAsync<bool>("confirm", "Bạn có chắc muốn xóa trạm bơm này?");
+        if (confirm)
+        {
+            var response = await PumpStationService.DeletePumpStationAsync(id, 1); // Giả sử ModifiedBy = 1
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Xóa trạm bơm thành công!");
+                pumpStations = await PumpStationService.GetPumpStationsAsync(keyword);
+            }
+            else
+            {
+                var errorMessage = await response.Content.ReadAsStringAsync();
+                await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+            }
+        }
+    }
+}

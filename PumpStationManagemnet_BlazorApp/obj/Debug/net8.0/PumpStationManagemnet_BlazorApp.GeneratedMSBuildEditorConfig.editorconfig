@@ -26,24 +26,104 @@ build_property._RazorSourceGeneratorDebug =
 build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/CreateUser.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ3JlYXRlVXNlci5yYXpvcg==
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Alerts/AlertDetail.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWxlcnRzXEFsZXJ0RGV0YWlsLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/EditUser.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRWRpdFVzZXIucmF6b3I=
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Alerts/Alerts.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWxlcnRzXEFsZXJ0cy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Alerts/CreateAlert.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWxlcnRzXENyZWF0ZUFsZXJ0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Alerts/EditAlert.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWxlcnRzXEVkaXRBbGVydC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Home.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/UserDetail.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXNlckRldGFpbC5yYXpvcg==
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/MaintainenceHistories/CreateMaintenanceHistory.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTWFpbnRhaW5lbmNlSGlzdG9yaWVzXENyZWF0ZU1haW50ZW5hbmNlSGlzdG9yeS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Users.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXNlcnMucmF6b3I=
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/MaintainenceHistories/EditMaintenanceHistory.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTWFpbnRhaW5lbmNlSGlzdG9yaWVzXEVkaXRNYWludGVuYW5jZUhpc3RvcnkucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/MaintainenceHistories/MaintenanceHistories.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTWFpbnRhaW5lbmNlSGlzdG9yaWVzXE1haW50ZW5hbmNlSGlzdG9yaWVzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/MaintainenceHistories/MaintenanceHistoryDetail.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTWFpbnRhaW5lbmNlSGlzdG9yaWVzXE1haW50ZW5hbmNlSGlzdG9yeURldGFpbC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Operatings/CreateOperating.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcT3BlcmF0aW5nc1xDcmVhdGVPcGVyYXRpbmcucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Operatings/EditOperating.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcT3BlcmF0aW5nc1xFZGl0T3BlcmF0aW5nLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Operatings/OperatingDetail.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcT3BlcmF0aW5nc1xPcGVyYXRpbmdEZXRhaWwucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Operatings/Operatings.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcT3BlcmF0aW5nc1xPcGVyYXRpbmdzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/PumpStations/CreatePumpStation.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHVtcFN0YXRpb25zXENyZWF0ZVB1bXBTdGF0aW9uLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/PumpStations/EditPumpStation.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHVtcFN0YXRpb25zXEVkaXRQdW1wU3RhdGlvbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/PumpStations/PumpStationDetail.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHVtcFN0YXRpb25zXFB1bXBTdGF0aW9uRGV0YWlsLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/PumpStations/PumpStations.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHVtcFN0YXRpb25zXFB1bXBTdGF0aW9ucy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Pumps/CreatePump.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHVtcHNcQ3JlYXRlUHVtcC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Pumps/EditPump.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHVtcHNcRWRpdFB1bXAucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Pumps/PumpDetail.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHVtcHNcUHVtcERldGFpbC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Pumps/Pumps.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHVtcHNcUHVtcHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Users/CreateUser.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXNlcnNcQ3JlYXRlVXNlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Users/EditUser.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXNlcnNcRWRpdFVzZXIucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Users/UserDetail.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXNlcnNcVXNlckRldGFpbC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Users/Users.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXNlcnNcVXNlcnMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/_Imports.razor]
