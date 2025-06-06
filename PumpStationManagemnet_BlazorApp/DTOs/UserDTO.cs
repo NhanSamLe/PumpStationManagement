@@ -9,6 +9,7 @@
         public string? PhoneNumber { get; set; }
         public int Role { get; set; }
         public bool? IsActive { get; set; } = true;
+        public int? CreatedBy { get; set; }
         public int? ModifiedBy { get; set; }
     }
 }

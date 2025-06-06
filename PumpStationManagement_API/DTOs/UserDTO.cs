@@ -30,6 +30,7 @@ namespace PumpStationManagement_API.DTOs
 
         public bool? IsActive { get; set; } = true;
 
+        public int? CreatedBy { get; set; }
         public int? ModifiedBy { get; set; }
     }
 }

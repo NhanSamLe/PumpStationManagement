@@ -69,7 +69,7 @@ else
                             <button class="btn btn-success btn-sm" @onclick="() => StartMaintenance(history.MaintenanceId)">Xử lý bảo trì</button>
                         }
 
-                        @if (history.Status != (int)MaintainStatus.Completed)
+                        @if (history.Status == (int)MaintainStatus.InProgress)
                         {
                             <button class="btn btn-primary btn-sm" @onclick="() => CompleteMaintenance(history.MaintenanceId)">Hoàn thành</button>
                         }

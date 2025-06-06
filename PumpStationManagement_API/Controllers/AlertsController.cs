@@ -99,7 +99,7 @@ namespace PumpStationManagement_API.Controllers
                 }
 
                 // Kiểm tra ModifiedBy hợp lệ (nếu có) - sử dụng ModifiedBy thay vì CreatedBy để đồng nhất
-                if (alertDto.ModifiedBy.HasValue)
+                if (alertDto.CreatedBy.HasValue)
                 {
                     var userExists = await context.Users
                         .AnyAsync(u => u.UserId == alertDto.ModifiedBy);
@@ -117,7 +117,7 @@ namespace PumpStationManagement_API.Controllers
                     Status = alertDto.Status != default ? alertDto.Status : (int)AlertStatus.Active,
                     IsDelete = false,
                     CreatedOn = DateTime.Now,
-                    CreatedBy = alertDto.ModifiedBy // Sử dụng ModifiedBy như CreatedBy để đồng nhất
+                    CreatedBy = alertDto.CreatedBy // Sử dụng ModifiedBy như CreatedBy để đồng nhất
                 };
 
                 context.Alerts.Add(alert);

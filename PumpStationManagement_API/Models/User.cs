@@ -58,13 +58,17 @@ namespace PumpStationManagement_API.Models
 
         [JsonIgnore]
         public virtual ICollection<MaintenanceHistory> MaintenanceHistories { get; set; } = new List<MaintenanceHistory>();
+        [JsonIgnore]
 
         public virtual ICollection<Pump> PumpCreatedByNavigations { get; set; } = new List<Pump>();
 
+        [JsonIgnore]
         public virtual ICollection<Pump> PumpModifiedByNavigations { get; set; } = new List<Pump>();
 
+        [JsonIgnore]
         public virtual ICollection<PumpStation> PumpStationCreatedByNavigations { get; set; } = new List<PumpStation>();
 
+        [JsonIgnore]
         public virtual ICollection<PumpStation> PumpStationModifiedByNavigations { get; set; } = new List<PumpStation>();
     }
 }

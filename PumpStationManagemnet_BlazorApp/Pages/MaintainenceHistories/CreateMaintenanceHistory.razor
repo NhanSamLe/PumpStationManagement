@@ -58,6 +58,7 @@
 
     private async Task HandleValidSubmit()
     {
+        maintenanceHistoryDto.Status = (int)MaintainStatus.Scheduled;
         var response = await MaintenanceService.CreateMaintenanceHistoryAsync(maintenanceHistoryDto);
         if (response.IsSuccessStatusCode)
         {

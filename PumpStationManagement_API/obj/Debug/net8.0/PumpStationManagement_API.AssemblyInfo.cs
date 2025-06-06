@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PumpStationManagement_API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ce656ed0b6fcebdfb6dad26a62b33af1d4eedda4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+303f2aa74bd2455f960090345e1b7cb56a824084")]
 [assembly: System.Reflection.AssemblyProductAttribute("PumpStationManagement_API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PumpStationManagement_API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -26,31 +26,17 @@
     </div>
     <div class="mb-3">
         <label class="form-label">Loại cảnh báo</label>
-        <InputNumber class="form-control" @bind-Value="alertDto.AlertType" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Thông điệp</label>
-        <InputTextArea class="form-control" @bind-Value="alertDto.AlertMessage" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Trạng thái</label>
-        <InputSelect class="form-control" @bind-Value="alertDto.Status">
-            <option value="@((int)AlertStatus.Active)">Hoạt động</option>
-            <option value="@((int)AlertStatus.Resolved)">Đã xử lý</option>
-            <option value="@((int)AlertStatus.Ignored)">Bỏ qua</option>
-        </InputSelect>
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Người tạo</label>
-        <InputSelect class="form-control" @bind-Value="alertDto.ModifiedBy">
-            <option value="">Không chọn</option>
-            @foreach (var user in users)
+        <InputSelect class="form-control" @bind-Value="alertDto.AlertType">
+            @foreach (var option in alertTypes)
             {
-                <option value="@user.UserId">@user.Username</option>
+                <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
             }
         </InputSelect>
     </div>
-
+    <div class="mb-3">
+        <label class="form-label">Nội Dung</label>
+        <InputTextArea class="form-control" @bind-Value="alertDto.AlertMessage" />
+    </div>
     <button type="submit" class="btn btn-primary">Tạo</button>
     <a class="btn btn-secondary ms-2" href="/alerts">Hủy</a>
 </EditForm>
@@ -58,16 +44,16 @@
 @code {
     private AlertDTO alertDto = new();
     private List<Pump> pumps = new();
-    private List<User> users = new();
-
+    private List<KeyValuePair<Enum, string>> alertTypes = new();
     protected override async Task OnInitializedAsync()
     {
+        alertTypes = EnumHelper.GetEnumListWithDescriptions<AlertType>();
         pumps = await PumpService.GetPumpsAsync();
-        users = await UserService.GetUsersAsync();
     }
 
     private async Task HandleValidSubmit()
     {
+        alertDto.CreatedBy = 1;
         var response = await AlertService.CreateAlertAsync(alertDto);
         if (response.IsSuccessStatusCode)
         {

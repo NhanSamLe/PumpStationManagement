@@ -54,6 +54,7 @@ namespace PumpStationManagement_API.Controllers
             try
             {
                 var operatingDatum = await context.OperatingDatas
+                    .Include(p => p.Pump)
                     .Where(p => p.DataId == id && !p.IsDelete)
                     .FirstOrDefaultAsync();
 

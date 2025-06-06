@@ -44,7 +44,7 @@ else
                 <td>@user.FullName</td>
                 <td>@user.Email</td>
                 <td>@user.PhoneNumber</td>
-                <td>@user.Role</td>
+                <td>@EnumHelper.GetDescription((UserRole)user.Role)</td>
                 <td>@(user.IsActive == true ? "Hoạt động" : "Không hoạt động")</td>
                 <td>
                     <a class="btn btn-info btn-sm" href="/users/@user.UserId">Chi tiết</a>

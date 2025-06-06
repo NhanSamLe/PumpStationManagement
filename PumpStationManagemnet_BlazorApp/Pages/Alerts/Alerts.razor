@@ -59,9 +59,11 @@ else
                 <tr>
                     <td>@alert.AlertId</td>
                     <td>@(alert.Pump?.PumpName ?? "N/A")</td>
-                    <td>@alert.AlertType</td>
+                    <td>@EnumHelper.GetDescription((AlertType)alert.AlertType)</td>
                     <td>@alert.AlertMessage</td>
-                    <td>@(alert.Status == (int)AlertStatus.Active ? "Hoạt động" : alert.Status == (int)AlertStatus.Resolved ? "Đã xử lý" : "Bỏ qua")</td>
+                    <td>@EnumHelper.GetDescription((AlertStatus)alert.Status)</td>
+                    <td>@alert.CreatedOn?.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@(alert.CreatedByNavigation?.Username ?? "N/A")</td>                
                     <td>
                         <a class="btn btn-info btn-sm" href="/alerts/@alert.AlertId">Chi tiết</a>
                         <a class="btn btn-warning btn-sm" href="/alerts/edit/@alert.AlertId">Sửa</a>
@@ -69,6 +71,10 @@ else
                         {
                             <button class="btn btn-success btn-sm" @onclick="() => ResolveAlert(alert.AlertId)">Xử lý</button>
                             <button class="btn btn-secondary btn-sm" @onclick="() => IgnoreAlert(alert.AlertId)">Bỏ qua</button>
+                        }
+                        @if (alert.Status == (int)AlertStatus.Ignored)
+                        {
+                            <button class="btn btn-success btn-sm" @onclick="() => ResolveAlert(alert.AlertId)">Xử lý lại</button>
                         }
                         <button class="btn btn-danger btn-sm" @onclick="() => DeleteAlert(alert.AlertId)">Xóa</button>
                     </td>

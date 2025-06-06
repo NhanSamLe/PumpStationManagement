@@ -20,9 +20,11 @@ else
             <p class="card-text"><strong>Tên đăng nhập:</strong> @user.Username</p>
             <p class="card-text"><strong>Email:</strong> @user.Email</p>
             <p class="card-text"><strong>Số điện thoại:</strong> @user.PhoneNumber</p>
-            <p class="card-text"><strong>Vai trò:</strong> @user.Role</p>
+            <p class="card-text"><strong>Vai trò:</strong> @EnumHelper.GetDescription((UserRole)user.Role)</p>
             <p class="card-text"><strong>Trạng thái:</strong> @(user.IsActive == true ? "Hoạt động" : "Không hoạt động")</p>
+            <p class="card-text"><strong>Người tạo:</strong> @user.CreatedBy</p>
             <p class="card-text"><strong>Ngày tạo:</strong> @user.CreatedOn?.ToString("dd/MM/yyyy")</p>
+            <p class="card-text"><strong>Người tạo:</strong> @user.ModifiedBy</p>
             <p class="card-text"><strong>Ngày chỉnh sửa:</strong> @user.ModifiedOn?.ToString("dd/MM/yyyy")</p>
         </div>
     </div>

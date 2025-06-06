@@ -24,10 +24,6 @@ else
             <InputText class="form-control" @bind-Value="userDto.Username" />
         </div>
         <div class="mb-3">
-            <label class="form-label">Mật khẩu</label>
-            <InputText class="form-control" type="password" @bind-Value="userDto.Password" />
-        </div>
-        <div class="mb-3">
             <label class="form-label">Họ tên</label>
             <InputText class="form-control" @bind-Value="userDto.FullName" />
         </div>
@@ -41,15 +37,16 @@ else
         </div>
         <div class="mb-3">
             <label class="form-label">Vai trò</label>
-            <InputNumber class="form-control" @bind-Value="userDto.Role" />
+            <InputSelect class="form-control" @bind-Value="userDto.Role">
+                @foreach (var option in userRole)
+                {
+                    <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
+                }
+            </InputSelect>
         </div>
         <div class="mb-3 form-check">
             <InputCheckbox class="form-check-input" @bind-Value="isActiveTemp" />
             <label class="form-check-label">Hoạt động</label>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Người chỉnh sửa (ID)</label>
-            <InputNumber class="form-control" @bind-Value="userDto.ModifiedBy" />
         </div>
 
         <button type="submit" class="btn btn-primary">Lưu</button>
@@ -64,7 +61,7 @@ else
     private User? user;
     private UserDTO userDto = new();
     private bool isActiveTemp; // Biến tạm thời để bind với InputCheckbox
-
+    private List<KeyValuePair<Enum, string>> userRole = EnumHelper.GetEnumListWithDescriptions<UserRole>();
     protected override async Task OnInitializedAsync()
     {
         user = await UserService.GetUserAsync(Id);

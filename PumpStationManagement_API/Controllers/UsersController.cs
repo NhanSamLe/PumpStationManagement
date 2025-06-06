@@ -103,7 +103,7 @@ namespace PumpStationManagement_API.Controllers
                     IsActive = userDto.IsActive ?? true,
                     IsDelete = false,
                     CreatedOn = DateTime.Now,
-                    CreatedBy = userDto.ModifiedBy ?? 0 // Giả sử 0 là hệ thống hoặc người dùng tự đăng ký
+                    CreatedBy = userDto.CreatedBy ?? 0 // Giả sử 0 là hệ thống hoặc người dùng tự đăng ký
                 };
 
                 context.Users.Add(user);

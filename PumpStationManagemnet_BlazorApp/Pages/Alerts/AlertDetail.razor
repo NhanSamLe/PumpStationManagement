@@ -16,16 +16,16 @@ else
 {
     <div class="card">
         <div class="card-body">
-            <h5 class="card-title">Cảnh báo #@alert.AlertId</h5>
+            <h5 class="card-title">Cảnh báo : @alert.AlertId</h5>
             <p class="card-text"><strong>Máy bơm:</strong> @(alert.Pump?.PumpName ?? "N/A")</p>
             <p class="card-text"><strong>Trạm bơm:</strong> @(pumpStations.FirstOrDefault(s => s.StationId == alert.Pump?.StationId)?.StationName ?? "N/A")</p>
-            <p class="card-text"><strong>Loại cảnh báo:</strong> @alert.AlertType</p>
-            <p class="card-text"><strong>Thông điệp:</strong> @alert.AlertMessage</p>
-            <p class="card-text"><strong>Trạng thái:</strong> @(alert.Status == (int)AlertStatus.Active ? "Hoạt động" : alert.Status == (int)AlertStatus.Resolved ? "Đã xử lý" : "Bỏ qua")</p>
+            <p class="card-text"><strong>Loại cảnh báo:</strong> @EnumHelper.GetDescription((AlertType)alert.AlertType)</p>
+            <p class="card-text"><strong>Nội Dung:</strong> @alert.AlertMessage</p>
+            <p class="card-text"><strong>Trạng thái:</strong>@EnumHelper.GetDescription((AlertStatus)alert.Status)</p>
             <p class="card-text"><strong>Người tạo:</strong> @(alert.CreatedByNavigation?.Username ?? "N/A")</p>
             <p class="card-text"><strong>Ngày tạo:</strong> @alert.CreatedOn?.ToString("dd/MM/yyyy HH:mm")</p>
-            <p class="card-text"><strong>Người chỉnh sửa:</strong> @(alert.ModifiedByNavigation?.Username ?? "N/A")</p>
-            <p class="card-text"><strong>Ngày chỉnh sửa:</strong> @alert.ModifiedOn?.ToString("dd/MM/yyyy HH:mm")</p>
+            <p class="card-text"><strong>Người xử lý:</strong> @(alert.ModifiedByNavigation?.Username ?? "N/A")</p>
+            <p class="card-text"><strong>Ngày xử lý:</strong> @alert.ModifiedOn?.ToString("dd/MM/yyyy HH:mm")</p>
         </div>
     </div>
     <a class="btn btn-primary mt-3" href="/alerts">Quay lại</a>
