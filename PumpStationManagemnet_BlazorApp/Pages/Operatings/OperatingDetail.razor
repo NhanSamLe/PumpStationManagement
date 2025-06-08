@@ -5,36 +5,95 @@
 @using PumpStationManagemnet_BlazorApp.Enums
 @inject OperatingService OperatingService
 @inject PumpStationService PumpStationService
-@inject IJSRuntime JS
 @inject NavigationManager NavigationManager
-<h3>OperatingDetail</h3>
 
-@if (operatingDatum == null)
-{
-<p>Đang tải...</p>
-}
-else
-{
-<div class="card">
-    <div class="card-body">
-        <h5 class="card-title">Dữ liệu vận hành : @operatingDatum.DataId</h5>
-        <p class="card-text"><strong>Máy bơm:</strong> @(operatingDatum.Pump?.PumpName ?? "N/A")</p>
-        <p class="card-text"><strong>Trạm bơm:</strong> @(pumpStations.FirstOrDefault(s => s.StationId == operatingDatum.Pump?.StationId)?.StationName ?? "N/A")</p>
-        <p class="card-text"><strong>Thời gian ghi:</strong> @operatingDatum.RecordTime.ToString("dd/MM/yyyy HH:mm")</p>
-        <p class="card-text"><strong>Lưu lượng:</strong> @operatingDatum.FlowRate</p>
-        <p class="card-text"><strong>Áp suất:</strong> @operatingDatum.Pressure</p>
-        <p class="card-text"><strong>Công suất tiêu thụ:</strong> @operatingDatum.PowerConsumption</p>
-        <p class="card-text"><strong>Nhiệt độ:</strong> @operatingDatum.Temperature</p>
-        <p class="card-text"><strong>Số giờ vận hành:</strong> @operatingDatum.RunningHours</p>
-        <p class="card-text"><strong>Hiệu suất:</strong> @operatingDatum.Efficiency</p>
-        <p class="card-text"><strong>Trạng thái:</strong> @EnumHelper.GetDescription((OperatingStatus)operatingDatum.Status)</p>
-        <p class="card-text"><strong>Ngày tạo:</strong> @operatingDatum.CreatedOn?.ToString("dd/MM/yyyy")</p>
-        <p class="card-text"><strong>Ngày chỉnh sửa:</strong> @operatingDatum.ModifiedOn?.ToString("dd/MM/yyyy")</p>
-    </div>
+<link href="css/operating/operatings.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+<div class="operatings-container">
+    <h1 class="operatings-title">
+        <i class="fas fa-tachometer-alt"></i>
+        Chi tiết dữ liệu vận hành
+    </h1>
+
+    @if (operatingDatum == null)
+    {
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Đang tải dữ liệu...</div>
+        </div>
+    }
+    else
+    {
+        <div class="detail-container">
+            <div class="card-header">
+                <h2 class="card-title">Dữ liệu vận hành: @operatingDatum.DataId</h2>
+            </div>
+            <div class="card-body">
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-faucet me-2"></i>Máy bơm:</span>
+                    <span class="info-value">@(operatingDatum.Pump?.PumpName ?? "N/A")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-pump-soap me-2"></i>Trạm bơm:</span>
+                    <span class="info-value">@(pumpStations.FirstOrDefault(s => s.StationId == operatingDatum.Pump?.StationId)?.StationName ?? "N/A")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-clock me-2"></i>Thời gian ghi:</span>
+                    <span class="info-value">@operatingDatum.RecordTime.ToString("dd/MM/yyyy HH:mm")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-tint me-2"></i>Lưu lượng:</span>
+                    <span class="info-value">@operatingDatum.FlowRate</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-compress me-2"></i>Áp suất:</span>
+                    <span class="info-value">@operatingDatum.Pressure</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-bolt me-2"></i>Công suất tiêu thụ:</span>
+                    <span class="info-value">@operatingDatum.PowerConsumption</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-thermometer-half me-2"></i>Nhiệt độ:</span>
+                    <span class="info-value">@operatingDatum.Temperature</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-hourglass-half me-2"></i>Số giờ vận hành:</span>
+                    <span class="info-value">@operatingDatum.RunningHours</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-chart-line me-2"></i>Hiệu suất:</span>
+                    <span class="info-value">@operatingDatum.Efficiency</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-info-circle me-2"></i>Trạng thái:</span>
+                    <span class="status-badge @(operatingDatum.Status == (int)OperatingStatus.Good ? "status-good" : operatingDatum.Status == (int)OperatingStatus.Normal ? "status-normal": operatingDatum.Status == (int)OperatingStatus.Warning ? "status-warning" : "status-critical")">
+                        @EnumHelper.GetDescription((OperatingStatus)operatingDatum.Status)
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-calendar-plus me-2"></i>Ngày tạo:</span>
+                    <span class="info-value">@(operatingDatum.CreatedOn?.ToString("dd/MM/yyyy") ?? "N/A")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-calendar-edit me-2"></i>Ngày chỉnh sửa:</span>
+                    <span class="info-value">@(operatingDatum.ModifiedOn?.ToString("dd/MM/yyyy") ?? "N/A")</span>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a class="btn btn-simple btn-primary-simple me-2" href="/operatings">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Quay lại
+                </a>
+                <a class="btn btn-simple btn-warning-simple" href="/operatings/edit/@operatingDatum.DataId">
+                    <i class="fas fa-edit me-2"></i>
+                    Chỉnh sửa
+                </a>
+            </div>
+        </div>
+    }
 </div>
-<a class="btn btn-primary mt-3" href="/operatings">Quay lại</a>
-<a class="btn btn-warning mt-3 ms-2" href="/operatings/edit/@operatingDatum.DataId">Chỉnh sửa</a>
-}
 
 @code {
     [Parameter]

@@ -7,82 +7,158 @@
 @inject PumpStationService PumpStationService
 @inject IJSRuntime JS
 @inject NavigationManager NavigationManager
-<h3>Quản Lý Cảnh Báo</h3>
 
-<div class="mb-3">
-    <div class="row">
-        <div class="col-md-6">
-            <input type="text" class="form-control" @bind="keyword" placeholder="Tìm kiếm theo tên máy bơm hoặc thông điệp..." />
-        </div>
-        <div class="col-md-4">
-            <InputSelect class="form-control" @bind-Value="stationId">
-                <option value="">Tất cả trạm bơm</option>
-                @foreach (var station in pumpStations)
-                {
-                    <option value="@station.StationId">@station.StationName</option>
-                }
-            </InputSelect>
-        </div>
-        <div class="col-md-2">
-            <button class="btn btn-primary" @onclick="SearchAlerts">Tìm kiếm</button>
+<link href="css/alert/alerts.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+<div class="alerts-container">
+    <h1 class="alerts-title">
+        <i class="fas fa-exclamation-triangle"></i>
+        Quản lý cảnh báo
+    </h1>
+
+    <div class="search-section">
+        <div class="row align-items-end">
+            <div class="col-md-6">
+                <label class="search-label">
+                    <i class="fas fa-search me-2"></i>
+                    Tìm kiếm cảnh báo
+                </label>
+                <input type="text"
+                       class="form-control search-input"
+                       @bind="keyword"
+                       @onkeypress="OnKeyPress"
+                       placeholder="Nhập tên máy bơm hoặc thông điệp..." />
+            </div>
+            <div class="col-md-2">
+                <label class="search-label">
+                    <i class="fas fa-pump-soap me-2"></i>
+                    Trạm bơm
+                </label>
+                <InputSelect class="form-select" @bind-Value="stationId">
+                    <option value="">Tất cả trạm bơm</option>
+                    @foreach (var station in pumpStations)
+                    {
+                        <option value="@station.StationId">@station.StationName</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="col-md-4 mt-3 mt-md-0">
+                <button class="btn btn-simple btn-primary-simple" @onclick="SearchAlerts">
+                    <i class="fas fa-search me-2"></i>
+                    Tìm kiếm
+                </button>
+                <a class="btn btn-simple btn-success-simple ms-2" href="/alerts/create">
+                    <i class="fas fa-plus me-2"></i>
+                    Thêm mới
+                </a>
+            </div>
         </div>
     </div>
-    <a class="btn btn-success mt-2" href="/alerts/create">Thêm Cảnh Báo</a>
-</div>
 
-@if (alerts == null)
-{
-    <p>Đang tải...</p>
-}
-else if (!alerts.Any())
-{
-    <p>Không tìm thấy cảnh báo nào.</p>
-}
-else
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Mã</th>
-                <th>Máy bơm</th>
-                <th>Loại cảnh báo</th>
-                <th>Nội Dung</th>
-                <th>Trạng thái</th>
-                <th>Ngày tạo</th>
-                <th>Người tạo</th>
-                <th>Hành động</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var alert in alerts)
-            {
-                <tr>
-                    <td>@alert.AlertId</td>
-                    <td>@(alert.Pump?.PumpName ?? "N/A")</td>
-                    <td>@EnumHelper.GetDescription((AlertType)alert.AlertType)</td>
-                    <td>@alert.AlertMessage</td>
-                    <td>@EnumHelper.GetDescription((AlertStatus)alert.Status)</td>
-                    <td>@alert.CreatedOn?.ToString("dd/MM/yyyy HH:mm")</td>
-                    <td>@(alert.CreatedByNavigation?.Username ?? "N/A")</td>                
-                    <td>
-                        <a class="btn btn-info btn-sm" href="/alerts/@alert.AlertId">Chi tiết</a>
-                        <a class="btn btn-warning btn-sm" href="/alerts/edit/@alert.AlertId">Sửa</a>
-                        @if (alert.Status == (int)AlertStatus.Active)
+    @if (alerts == null)
+    {
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Đang tải dữ liệu...</div>
+        </div>
+    }
+    else if (!alerts.Any())
+    {
+        <div class="no-data-container">
+            <i class="fas fa-exclamation-triangle no-data-icon"></i>
+            <div class="no-data-text">
+                @if (string.IsNullOrEmpty(keyword) && stationId == null)
+                {
+                    <text>Chưa có cảnh báo nào trong hệ thống</text>
+                }
+                else
+                {
+                    <text>Không tìm thấy cảnh báo phù hợp với tiêu chí tìm kiếm</text>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-simple">
+                    <thead>
+                        <tr>
+                            <th>Mã</th>
+                            <th>Máy bơm</th>
+                            <th>Loại cảnh báo</th>
+                            <th>Nội dung</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày tạo</th>
+                            <th>Người tạo</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var alert in alerts)
                         {
-                            <button class="btn btn-success btn-sm" @onclick="() => ResolveAlert(alert.AlertId)">Xử lý</button>
-                            <button class="btn btn-secondary btn-sm" @onclick="() => IgnoreAlert(alert.AlertId)">Bỏ qua</button>
+                            <tr>
+                                <td><strong>@alert.AlertId</strong></td>
+                                <td>@(alert.Pump?.PumpName ?? "N/A")</td>
+                                <td>@EnumHelper.GetDescription((AlertType)alert.AlertType)</td>
+                                <td>@alert.AlertMessage</td>
+                                <td>
+                                    <span class="status-badge @(alert.Status == (int)AlertStatus.Active ? "status-active" : alert.Status == (int)AlertStatus.Resolved ? "status-resolved" : "status-ignored")">
+                                        @EnumHelper.GetDescription((AlertStatus)alert.Status)
+                                    </span>
+                                </td>
+                                <td>@alert.CreatedOn?.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                <td>@(alert.CreatedByNavigation?.Username ?? "N/A")</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a class="btn btn-action btn-info-action"
+                                           href="/alerts/@alert.AlertId"
+                                           title="Chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a class="btn btn-action btn-warning-action"
+                                           href="/alerts/edit/@alert.AlertId"
+                                           title="Chỉnh sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        @if (alert.Status == (int)AlertStatus.Active)
+                                        {
+                                            <button class="btn btn-action btn-success-action"
+                                                    @onclick="() => ResolveAlert(alert.AlertId)"
+                                                    title="Xử lý">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-action btn-secondary-action"
+                                                    @onclick="() => IgnoreAlert(alert.AlertId)"
+                                                    title="Bỏ qua">
+                                                <i class="fas fa-eye-slash"></i>
+                                            </button>
+                                        }
+                                        @if (alert.Status == (int)AlertStatus.Ignored)
+                                        {
+                                            <button class="btn btn-action btn-success-action"
+                                                    @onclick="() => ResolveAlert(alert.AlertId)"
+                                                    title="Xử lý lại">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        }
+                                        <button class="btn btn-action btn-danger-action"
+                                                @onclick="() => DeleteAlert(alert.AlertId)"
+                                                title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
                         }
-                        @if (alert.Status == (int)AlertStatus.Ignored)
-                        {
-                            <button class="btn btn-success btn-sm" @onclick="() => ResolveAlert(alert.AlertId)">Xử lý lại</button>
-                        }
-                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteAlert(alert.AlertId)">Xóa</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
 
 @code {
     private List<Alert>? alerts;
@@ -92,68 +168,110 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        pumpStations = await PumpStationService.GetPumpStationsAsync();
-        alerts = await AlertService.GetAlertsAsync();
+        try
+        {
+            pumpStations = await PumpStationService.GetPumpStationsAsync();
+            alerts = await AlertService.GetAlertsAsync(keyword, stationId);
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Lỗi khi tải dữ liệu: {ex.Message}");
+        }
     }
 
     private async Task SearchAlerts()
     {
-        alerts = await AlertService.GetAlertsAsync(keyword, stationId);
+        try
+        {
+            alerts = null; // Show loading
+            StateHasChanged();
+            alerts = await AlertService.GetAlertsAsync(keyword, stationId);
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Lỗi khi tìm kiếm: {ex.Message}");
+        }
+    }
+
+    private async Task OnKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchAlerts();
+        }
     }
 
     private async Task DeleteAlert(int id)
     {
-        var confirm = await JS.InvokeAsync<bool>("confirm", "Bạn có chắc muốn xóa cảnh báo này?");
-        if (confirm)
+        if (await JS.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa cảnh báo này không?"))
         {
-            var response = await AlertService.DeleteAlertAsync(id, 1); // Assume ModifiedBy = 1
-            if (response.IsSuccessStatusCode)
+            try
             {
-                await JS.InvokeVoidAsync("alert", "Xóa cảnh báo thành công!");
-                alerts = await AlertService.GetAlertsAsync(keyword, stationId);
+                var response = await AlertService.DeleteAlertAsync(id, 1);
+                if (response.IsSuccessStatusCode)
+                {
+                    await JS.InvokeVoidAsync("alert", "Xóa cảnh báo thành công!");
+                    alerts = await AlertService.GetAlertsAsync(keyword, stationId);
+                }
+                else
+                {
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                var errorMessage = await response.Content.ReadAsStringAsync();
-                await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+                await JS.InvokeVoidAsync("alert", $"Lỗi: {ex.Message}");
             }
         }
     }
 
     private async Task ResolveAlert(int id)
     {
-        var confirm = await JS.InvokeAsync<bool>("confirm", "Bạn có muốn đánh dấu cảnh báo này là đã xử lý?");
-        if (confirm)
+        if (await JS.InvokeAsync<bool>("confirm", "Bạn có muốn đánh dấu cảnh báo này là đã xử lý không?"))
         {
-            var response = await AlertService.ResolveAlertAsync(id, 1); // Assume ModifiedBy = 1
-            if (response.IsSuccessStatusCode)
+            try
             {
-                await JS.InvokeVoidAsync("alert", "Xử lý cảnh báo thành công!");
-                alerts = await AlertService.GetAlertsAsync(keyword, stationId);
+                var response = await AlertService.ResolveAlertAsync(id, 1);
+                if (response.IsSuccessStatusCode)
+                {
+                    await JS.InvokeVoidAsync("alert", "Xử lý cảnh báo thành công!");
+                    alerts = await AlertService.GetAlertsAsync(keyword, stationId);
+                }
+                else
+                {
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                var errorMessage = await response.Content.ReadAsStringAsync();
-                await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+                await JS.InvokeVoidAsync("alert", $"Lỗi: {ex.Message}");
             }
         }
     }
 
     private async Task IgnoreAlert(int id)
     {
-        var confirm = await JS.InvokeAsync<bool>("confirm", "Bạn có muốn bỏ qua cảnh báo này?");
-        if (confirm)
+        if (await JS.InvokeAsync<bool>("confirm", "Bạn có muốn bỏ qua cảnh báo này không?"))
         {
-            var response = await AlertService.IgnoreAlertAsync(id, 1); // Assume ModifiedBy = 1
-            if (response.IsSuccessStatusCode)
+            try
             {
-                await JS.InvokeVoidAsync("alert", "Bỏ qua cảnh báo thành công!");
-                alerts = await AlertService.GetAlertsAsync(keyword, stationId);
+                var response = await AlertService.IgnoreAlertAsync(id, 1);
+                if (response.IsSuccessStatusCode)
+                {
+                    await JS.InvokeVoidAsync("alert", "Bỏ qua cảnh báo thành công!");
+                    alerts = await AlertService.GetAlertsAsync(keyword, stationId);
+                }
+                else
+                {
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                var errorMessage = await response.Content.ReadAsStringAsync();
-                await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+                await JS.InvokeVoidAsync("alert", $"Lỗi: {ex.Message}");
             }
         }
     }

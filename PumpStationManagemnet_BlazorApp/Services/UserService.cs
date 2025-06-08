@@ -24,6 +24,10 @@ namespace PumpStationManagemnet_BlazorApp.Services
             return await _httpClient.GetFromJsonAsync<User>($"api/Users/{id}");
         }
 
+        public async Task<String?> GetUserNameAsync(int id)
+        {
+            return await _httpClient.GetStringAsync($"api/Users/username/{id}");
+        }
         public async Task<HttpResponseMessage> CreateUserAsync(UserDTO userDto)
         {
             return await _httpClient.PostAsJsonAsync("api/Users", userDto);

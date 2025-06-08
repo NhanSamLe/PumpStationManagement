@@ -1,12 +1,34 @@
-﻿<Router AppAssembly="@typeof(App).Assembly">
+﻿@using PumpStationManagemnet_BlazorApp.Services
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<Router AppAssembly="@typeof(App).Assembly" OnNavigateAsync="HandleNavigationAsync">
     <Found Context="routeData">
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
     <NotFound>
-        <PageTitle>Not found</PageTitle>
         <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Sorry, there's nothing at this address.</p>
+            <p>Trang không tồn tại</p>
         </LayoutView>
     </NotFound>
 </Router>
+
+@code {
+
+    private bool _sessionRestored = false;
+    private async Task HandleNavigationAsync(NavigationContext args)
+    {
+         if (!_sessionRestored)
+        {
+            await AuthService.RestoreSessionAsync();
+            _sessionRestored = true;
+        }
+
+        if (!AuthService.IsAuthenticated && args.Path != "login" && args.Path != "register")
+        {
+            Navigation.NavigateTo("/login");
+
+        }
+    }
+}

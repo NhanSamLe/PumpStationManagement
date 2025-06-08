@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PumpStationManagemnet_BlazorApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+303f2aa74bd2455f960090345e1b7cb56a824084")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bf5a930ce1f54b941aab2649fbbe3ad89f594539")]
 [assembly: System.Reflection.AssemblyProductAttribute("PumpStationManagemnet_BlazorApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PumpStationManagemnet_BlazorApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

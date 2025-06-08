@@ -3,58 +3,132 @@
 @using PumpStationManagemnet_BlazorApp.Models
 @using PumpStationManagemnet_BlazorApp.Services
 @using PumpStationManagemnet_BlazorApp.Enums
+@inject AuthService AuthService
 @inject PumpStationService PumpStationService
 @inject IJSRuntime JS
 @inject NavigationManager NavigationManager
 
-<h3 class="text-center mb-3">Quản lý trạm bơm</h3>
+<link href="css/pumpstation/pumpstation.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+<script src="js/excel.js"></script>
+<div class="pumpstation-container">
+    <h1 class="pumpstation-title">
+        <i class="fas fa-pump-soap"></i>
+        Quản lý trạm bơm
+    </h1>
 
-<div class="mb-3">
-    <input type="text" class="form-control" @bind="keyword" placeholder="Tìm kiếm theo tên hoặc vị trí..." />
-    <button class="btn btn-primary mt-2" @onclick="SearchPumpStations">Tìm kiếm</button>
-    <a class="btn btn-success mt-2 ms-2" href="/pumpstations/create">Tạo trạm bơm mới</a>
+    <div class="search-section">
+        <div class="row align-items-end">
+            <div class="col-md-8">
+                <label class="search-label">
+                    <i class="fas fa-search me-2"></i>
+                    Tìm kiếm trạm bơm
+                </label>
+                <input type="text"
+                       class="form-control search-input"
+                       @bind="keyword"
+                       @onkeypress="OnKeyPress"
+                       placeholder="Nhập tên hoặc vị trí..." />
+            </div>
+            <div class="col-md-4 mt-3 mt-md-0">
+                <button class="btn btn-simple btn-primary-simple me-2" @onclick="SearchPumpStations">
+                    <i class="fas fa-search me-2"></i>
+                    Tìm kiếm
+                </button>
+                <a class="btn btn-simple btn-success-simple" href="/pumpstations/create">
+                    <i class="fas fa-plus me-2"></i>
+                    Thêm mới
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @if (pumpStations == null)
+    {
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Đang tải dữ liệu...</div>
+        </div>
+    }
+    else if (!pumpStations.Any())
+    {
+        <div class="no-data-container">
+            <i class="fas fa-pump-soap no-data-icon"></i>
+            <div class="no-data-text">
+                @if (string.IsNullOrEmpty(keyword))
+                {
+                    <text>Chưa có trạm bơm nào trong hệ thống</text>
+                }
+                else
+                {
+                    <text>Không tìm thấy trạm bơm phù hợp với từ khóa "@keyword"</text>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-simple">
+                    <thead>
+                        <tr>
+                            <th>Mã</th>
+                            <th>Tên trạm bơm</th>
+                            <th>Vị trí</th>
+                            <th>Mô tả</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var station in pumpStations)
+                        {
+                            <tr>
+                                <td><strong>@station.StationId</strong></td>
+                                <td>@station.StationName</td>
+                                <td>@station.Location</td>
+                                <td>@station.Description</td>
+                                <td>
+                                    <span class="status-badge @(station.Status == (int)StationStatus.Active ? "status-active" : "status-inactive")">
+                                        @EnumHelper.GetDescription((StationStatus)station.Status)
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a class="btn btn-action btn-info-action"
+                                           href="/pumpstations/@station.StationId"
+                                           title="Xem chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a class="btn btn-action btn-warning-action"
+                                           href="/pumpstations/edit/@station.StationId"
+                                           title="Chỉnh sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn btn-action btn-danger-action"
+                                                @onclick="() => DeletePumpStation(station.StationId)"
+                                                title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            
+        </div>
+    }
+    @if (AuthService.IsAuthenticated && AuthService.HasRole(UserRole.Admin))
+    {
+        <button class="btn btn-outline-success mt2" @onclick="ExportToExcel">
+            <i class="fas fa-file-excel me-2"></i>
+            Xuất Excel
+        </button>
+    }
 </div>
-
-@if (pumpStations == null)
-{
-    <p>Đang tải...</p>
-}
-else if (!pumpStations.Any())
-{
-    <p>Không tìm thấy trạm bơm nào.</p>
-}
-else
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Mã</th>
-                <th>Tên trạm bơm</th>
-                <th>Vị trí</th>
-                <th>Mô tả</th>
-                <th>Trạng thái</th>
-                <th>Hành động</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var station in pumpStations)
-            {
-                <tr>
-                    <td>@station.StationId</td>
-                    <td>@station.StationName</td>
-                    <td>@station.Location</td>
-                    <td>@station.Description</td>
-                    <td>@EnumHelper.GetDescription((StationStatus)station.Status)</td>
-                    <td>
-                        <a class="btn btn-info btn-sm" href="/pumpstations/@station.StationId">Chi tiết</a>
-                        <a class="btn btn-warning btn-sm" href="/pumpstations/edit/@station.StationId">Sửa</a>
-                        <button class="btn btn-danger btn-sm" @onclick="() => DeletePumpStation(station.StationId)">Xóa</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
 
 @code {
     private List<PumpStation>? pumpStations;
@@ -67,25 +141,55 @@ else
 
     private async Task SearchPumpStations()
     {
+        pumpStations = null; // Show loading
+        StateHasChanged();
         pumpStations = await PumpStationService.GetPumpStationsAsync(keyword);
+    }
+
+    private async Task OnKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchPumpStations();
+        }
     }
 
     private async Task DeletePumpStation(int id)
     {
-        var confirm = await JS.InvokeAsync<bool>("confirm", "Bạn có chắc muốn xóa trạm bơm này?");
-        if (confirm)
+        if (await JS.InvokeAsync<bool>("confirm", "Bạn có chắc muốn xóa trạm bơm này?"))
         {
-            var response = await PumpStationService.DeletePumpStationAsync(id, 1); // Giả sử ModifiedBy = 1
-            if (response.IsSuccessStatusCode)
+            try
             {
-                await JS.InvokeVoidAsync("alert", "Xóa trạm bơm thành công!");
-                pumpStations = await PumpStationService.GetPumpStationsAsync(keyword);
+                var response = await PumpStationService.DeletePumpStationAsync(id, 1);
+                if (response.IsSuccessStatusCode)
+                {
+                    pumpStations = await PumpStationService.GetPumpStationsAsync(keyword);
+                    await JS.InvokeVoidAsync("alert", "Xóa trạm bơm thành công!");
+                }
+                else
+                {
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                var errorMessage = await response.Content.ReadAsStringAsync();
-                await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+                await JS.InvokeVoidAsync("alert", $"Lỗi: {ex.Message}");
             }
+        }
+    }
+    private async Task ExportToExcel()
+    {
+        try
+        {
+            
+            var fileBytes = await PumpStationService.ExportToExcel(keyword);
+            await JS.InvokeVoidAsync("downloadFileFromStream", "PumpStations.xlsx", fileBytes);
+        }
+        catch (Exception ex)
+        {
+         
+            await JS.InvokeVoidAsync("alert", $"Lỗi khi xuất Excel: {ex.Message}");
         }
     }
 }

@@ -1,0 +1,242 @@
+﻿@page "/register"
+@using PumpStationManagemnet_BlazorApp.Layout
+@using PumpStationManagemnet_BlazorApp.Request
+@using PumpStationManagemnet_BlazorApp.Services
+@layout AuthLayout
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+
+<script src="js/auth.js"></script>
+<link href="css/auth.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+<div class="auth-container">
+    <div class="auth-card">
+        <h1 class="auth-title">
+            <i class="fas fa-user-plus"></i>
+            Đăng ký tài khoản
+        </h1>
+
+        <EditForm Model="@registerDto" OnValidSubmit="HandleRegister">
+            <DataAnnotationsValidator />
+
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    @ErrorMessage
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(SuccessMessage))
+            {
+                <div class="alert alert-success" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    @SuccessMessage
+                </div>
+            }
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-user me-2"></i>
+                    Tên đăng nhập
+                </label>
+                <InputText class="form-control" @bind-Value="registerDto.Username"
+                           placeholder="Nhập tên đăng nhập" required />
+                <ValidationMessage For="@(() => registerDto.Username)" class="validation-message" />
+                <small class="form-text text-muted">Tên đăng nhập phải có ít nhất 3 ký tự</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-signature me-2"></i>
+                    Họ và tên
+                </label>
+                <InputText class="form-control" @bind-Value="registerDto.FullName"
+                           placeholder="Nhập họ và tên đầy đủ" />
+                <ValidationMessage For="@(() => registerDto.FullName)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-envelope me-2"></i>
+                    Email
+                </label>
+                <InputText type="email" class="form-control" @bind-Value="registerDto.Email"
+                           placeholder="Nhập địa chỉ email" required />
+                <ValidationMessage For="@(() => registerDto.Email)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-phone me-2"></i>
+                    Số điện thoại (tùy chọn)
+                </label>
+                <InputText class="form-control" @bind-Value="registerDto.PhoneNumber"
+                           placeholder="Nhập số điện thoại" />
+                <ValidationMessage For="@(() => registerDto.PhoneNumber)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-lock me-2"></i>
+                    Mật khẩu
+                </label>
+                <InputText type="password" class="form-control" @bind-Value="registerDto.Password"
+                           placeholder="Nhập mật khẩu" required />
+                <ValidationMessage For="@(() => registerDto.Password)" class="validation-message" />
+                <small class="form-text text-muted">Mật khẩu phải có ít nhất 6 ký tự</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-lock me-2"></i>
+                    Xác nhận mật khẩu
+                </label>
+                <InputText type="password" class="form-control" @bind-Value="confirmPassword"
+                           placeholder="Nhập lại mật khẩu" required />
+                @if (!string.IsNullOrEmpty(confirmPassword) && confirmPassword != registerDto.Password)
+                {
+                    <div class="validation-message">Mật khẩu xác nhận không khớp</div>
+                }
+            </div>
+
+            <button type="submit" class="btn btn-simple btn-success-simple" disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <i class="fas fa-spinner fa-spin me-2"></i>
+                    <span>Đang đăng ký...</span>
+                }
+                else
+                {
+                    <i class="fas fa-user-plus me-2"></i>
+                    <span>Đăng ký</span>
+                }
+            </button>
+        </EditForm>
+
+        <div class="auth-footer">
+            Đã có tài khoản? <a href="/login">Đăng nhập ngay</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterRequest registerDto = new();
+    private string confirmPassword = string.Empty;
+    private string? ErrorMessage;
+    private string? SuccessMessage;
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Kiểm tra nếu đã đăng nhập thì chuyển hướng
+        await AuthService.RestoreSessionAsync();
+        if (AuthService.IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/login");
+        }
+    }
+
+    private async Task HandleRegister()
+    {
+        // Xóa thông báo cũ
+        ErrorMessage = null;
+        SuccessMessage = null;
+
+        // Validation cơ bản
+        if (!ValidateForm())
+        {
+            return;
+        }
+
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var (success, message, user) = await AuthService.RegisterAsync(registerDto);
+
+            if (success)
+            {
+                SuccessMessage = "Đăng ký thành công! Đang chuyển hướng đến trang đăng nhập...";
+                await JS.InvokeVoidAsync("showToast", "success", "Đăng ký thành công!");
+
+                // Chờ 2 giây rồi chuyển hướng
+                await Task.Delay(2000);
+                NavigationManager.NavigateTo("/login");
+            }
+            else
+            {
+                ErrorMessage = message ?? "Đăng ký thất bại";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Lỗi kết nối: {ex.Message}";
+            await JS.InvokeVoidAsync("showToast", "error", ErrorMessage);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private bool ValidateForm()
+    {
+        var errors = new List<string>();
+
+        // Kiểm tra các trường bắt buộc
+        if (string.IsNullOrWhiteSpace(registerDto.Username))
+            errors.Add("Tên đăng nhập không được để trống");
+        else if (registerDto.Username.Length < 3)
+            errors.Add("Tên đăng nhập phải có ít nhất 3 ký tự");
+
+        if (string.IsNullOrWhiteSpace(registerDto.Email))
+            errors.Add("Email không được để trống");
+        else if (!IsValidEmail(registerDto.Email))
+            errors.Add("Email không đúng định dạng");
+
+        if (string.IsNullOrWhiteSpace(registerDto.Password))
+            errors.Add("Mật khẩu không được để trống");
+        else if (registerDto.Password.Length < 6)
+            errors.Add("Mật khẩu phải có ít nhất 6 ký tự");
+
+        if (confirmPassword != registerDto.Password)
+            errors.Add("Mật khẩu xác nhận không khớp");
+
+        // Kiểm tra số điện thoại nếu có
+        if (!string.IsNullOrWhiteSpace(registerDto.PhoneNumber) && !IsValidPhoneNumber(registerDto.PhoneNumber))
+            errors.Add("Số điện thoại không đúng định dạng");
+
+        if (errors.Any())
+        {
+            ErrorMessage = string.Join("<br/>", errors);
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool IsValidEmail(string email)
+    {
+        try
+        {
+            var addr = new System.Net.Mail.MailAddress(email);
+            return addr.Address == email;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private bool IsValidPhoneNumber(string phoneNumber)
+    {
+        // Kiểm tra định dạng số điện thoại Việt Nam cơ bản
+        var cleanNumber = phoneNumber.Replace(" ", "").Replace("-", "").Replace("(", "").Replace(")", "");
+        return cleanNumber.Length >= 10 && cleanNumber.Length <= 11 && cleanNumber.All(char.IsDigit);
+    }
+}

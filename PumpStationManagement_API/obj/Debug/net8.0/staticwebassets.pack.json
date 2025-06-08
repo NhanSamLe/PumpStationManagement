@@ -1,0 +1,25 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Users\\Admin\\.nuget\\packages\\chartjs.blazor.fork\\2.0.2\\contentFiles\\any\\netstandard2.1\\wwwroot\\ChartJsBlazorInterop.js",
+      "PackagePath": "staticwebassets\\ChartJsBlazorInterop.js"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.PumpStationManagement_API.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.PumpStationManagement_API.props",
+      "PackagePath": "build\\PumpStationManagement_API.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.PumpStationManagement_API.props",
+      "PackagePath": "buildMultiTargeting\\PumpStationManagement_API.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.PumpStationManagement_API.props",
+      "PackagePath": "buildTransitive\\PumpStationManagement_API.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

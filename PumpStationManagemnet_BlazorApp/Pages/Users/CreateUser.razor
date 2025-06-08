@@ -3,63 +3,124 @@
 @using PumpStationManagemnet_BlazorApp.Models
 @using PumpStationManagemnet_BlazorApp.Services
 @using PumpStationManagemnet_BlazorApp.Enums
+@using PumpStationManagemnet_BlazorApp.Public
+@using System.Text.Json
 @inject PumpStationManagemnet_BlazorApp.Services.UserService UserService
+@inject AuthService AuthService
 @inject IJSRuntime JS
 @inject NavigationManager NavigationManager
-<h3  class="text-center mb-3" >CreateUser</h3>
 
-<EditForm Model="@userDto" OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+<link href="css/user/create-user.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
-    <div class="mb-3">
-        <label class="form-label">Tên đăng nhập</label>
-        <InputText class="form-control" @bind-Value="userDto.Username" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Họ tên</label>
-        <InputText class="form-control" @bind-Value="userDto.FullName" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Email</label>
-        <InputText class="form-control" @bind-Value="userDto.Email" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Số điện thoại</label>
-        <InputText class="form-control" @bind-Value="userDto.PhoneNumber" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Vai trò</label>
-        <InputSelect class="form-control" @bind-Value="userDto.Role">
-            @foreach (var option in userRole)
+<div class="create-user-container">
+    <h1 class="create-user-title">
+        <i class="fas fa-user-plus"></i>
+        Tạo người dùng mới
+    </h1>
+
+    <div class="form-card">
+        <EditForm Model="@userDto" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            @if (!string.IsNullOrEmpty(ErrorMessage))
             {
-                <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
+                <div class="alert alert-danger" role="alert">
+                    @ErrorMessage
+                </div>
             }
-        </InputSelect>
+
+            <div class="form-group">
+                <label class="form-label">Tên đăng nhập</label>
+                <InputText class="form-control" @bind-Value="userDto.Username" placeholder="Nhập tên đăng nhập" />
+                <ValidationMessage For="@(() => userDto.Username)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Họ tên</label>
+                <InputText class="form-control" @bind-Value="userDto.FullName" placeholder="Nhập họ tên" />
+                <ValidationMessage For="@(() => userDto.FullName)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <InputText class="form-control" @bind-Value="userDto.Email" placeholder="Nhập email" />
+                <ValidationMessage For="@(() => userDto.Email)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Mật khẩu</label>
+                <InputText type="password" class="form-control" @bind-Value="userDto.Password" placeholder="Nhập mật khẩu" />
+                <ValidationMessage For="@(() => userDto.Password)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Số điện thoại</label>
+                <InputText class="form-control" @bind-Value="userDto.PhoneNumber" placeholder="Nhập số điện thoại" />
+                <ValidationMessage For="@(() => userDto.PhoneNumber)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Vai trò</label>
+                <InputSelect class="form-select" @bind-Value="userDto.Role">
+                    @foreach (var option in userRole)
+                    {
+                        <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => userDto.Role)" class="validation-message" />
+            </div>
+
+            <div class="form-check">
+                <InputCheckbox class="form-check-input" @bind-Value="isActiveTemp" />
+                <label class="form-check-label">Hoạt động</label>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    Tạo
+                </button>
+                <a class="btn btn-warning" href="/users">
+                    <i class="fas fa-times"></i>
+                    Hủy
+                </a>
+            </div>
+        </EditForm>
     </div>
-    <div class="mb-3 form-check">
-        <InputCheckbox class="form-check-input" @bind-Value="isActiveTemp" />
-        <label class="form-check-label">Hoạt động</label>
-    </div>
-    <button type="submit" class="btn btn-primary">Tạo</button>
-    <a class="btn btn-secondary ms-2" href="/users">Hủy</a>
-</EditForm>
+</div>
 
 @code {
     private UserDTO userDto = new();
     private bool isActiveTemp = true;
     private List<KeyValuePair<Enum, string>> userRole = EnumHelper.GetEnumListWithDescriptions<UserRole>();
+    private string? ErrorMessage;
+
     private async Task HandleValidSubmit()
     {
-        userDto.CreatedBy = 1;
-        var response = await UserService.CreateUserAsync(userDto);
-        if (response.IsSuccessStatusCode)
+        ErrorMessage = null;
+        userDto.IsActive = isActiveTemp;
+        userDto.CreatedBy = AuthService.CurrentUserId;
+
+        try
         {
-            NavigationManager.NavigateTo("/users");
+            var response = await UserService.CreateUserAsync(userDto);
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Tạo người dùng thành công!");
+                NavigationManager.NavigateTo("/users");
+            }
+            else
+            {
+                var errorMessageJson = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(errorMessageJson);
+                ErrorMessage = doc.RootElement.GetProperty("message").GetString();
+                await JS.InvokeVoidAsync("alert", $"Lỗi: {ErrorMessage}");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            // Xử lý lỗi (hiển thị thông báo)
+            ErrorMessage = $"Lỗi: {ex.Message}";
+            await JS.InvokeVoidAsync("alert", ErrorMessage);
         }
     }
 }

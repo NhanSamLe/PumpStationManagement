@@ -17,7 +17,7 @@ namespace PumpStationManagemnet_BlazorApp.DTOs
 
         [Required(ErrorMessage = "Trạng thái là bắt buộc")]
         public int Status { get; set; }
-
+        public int? CreatedBy { get; set; }
         public int? ModifiedBy { get; set; }
     }
 }

@@ -1,0 +1,227 @@
+﻿@page "/statistics"
+@using PumpStationManagemnet_BlazorApp.DTOs
+@using PumpStationManagemnet_BlazorApp.Models
+@using PumpStationManagemnet_BlazorApp.Services
+@using PumpStationManagemnet_BlazorApp.Enums
+@inject StatisticsService StatisticsService
+@inject IJSRuntime JS
+
+<PageTitle>Thống Kê Trạm Bơm</PageTitle>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="js/site.js"></script>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-4">Thống Kê Tỷ Lệ Trạng Thái Vận Hành</h3>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <label class="form-label">Chọn trạm bơm:</label>
+                            <select class="form-select" value="@selectedStationId" @onchange="OnStationChanged">
+                                <option value="0">Tất cả trạm</option>
+                                @foreach (var station in stations)
+                                {
+                                    <option value="@station.StationId">@station.StationName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-primary" @onclick="LoadStatistics" disabled="@isLoading">
+                                @if (isLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                Tải lại dữ liệu
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div>
+            <p class="mt-3">Đang tải dữ liệu thống kê...</p>
+        </div>
+    }
+    else if (stationStatuses?.Any() == true)
+    {
+        <div class="row">
+            @foreach (var station in stationStatuses)
+            {
+                <div class="col-lg-6 col-xl-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-water me-2"></i>@station.StationName
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            @if (station.StatusCounts?.Any() == true)
+                            {
+                                <div class="chart-container text-center mb-4">
+                                    <canvas id="chart-@station.StationId" style="max-height: 250px;"></canvas>
+                                </div>
+
+                                <div class="chart-legend">
+                                    @foreach (var status in station.StatusCounts)
+                                    {
+                                        <div class="legend-item d-flex align-items-center justify-content-between mb-2">
+                                            <div class="d-flex align-items-center">
+                                                <div class="legend-color me-2" style="background-color: @(GetStatusColor(status.Status))"></div>
+                                                <span class="legend-label">@status.StatusName</span>
+                                            </div>
+                                            <div class="legend-value">
+                                                <span class="badge bg-secondary">@status.Count</span>
+                                                <small class="text-muted ms-1">(@status.Percentage.ToString("F1")%)</small>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center text-muted py-5">
+                                    <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
+                                    <p>Không có dữ liệu trạng thái</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-chart-pie fa-4x text-muted mb-3"></i>
+                        <h5>Không có dữ liệu thống kê</h5>
+                        <p class="text-muted">Không tìm thấy dữ liệu cho các trạm bơm đã chọn.</p>
+                        <button class="btn btn-outline-primary" @onclick="LoadStatistics">
+                            <i class="fas fa-sync-alt me-2"></i>Thử lại
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<PumpStation> stations = new();
+    private List<StationStatusDto> stationStatuses = new();
+    private int? selectedStationId = 0;
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStations();
+        await LoadStatistics();
+    }
+    private async Task LoadStations()
+    {
+        try
+        {
+            isLoading = true;
+            stations = await StatisticsService.GetStationsAsync();
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Lỗi khi tải danh sách trạm: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadStatistics()
+    {
+        try
+        {
+            isLoading = true;
+            stationStatuses = await StatisticsService.GetStationStatusAsync(selectedStationId);
+            StateHasChanged(); // Buộc cập nhật UI để render các phần tử <canvas>
+            await DrawCharts();
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Lỗi khi tải dữ liệu thống kê: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnStationChanged(ChangeEventArgs e)
+    {
+        selectedStationId = int.TryParse(e.Value?.ToString(), out var id) && id > 0 ? id : null;
+        await LoadStatistics();
+    }
+
+    private string GetStatusColor(int status)
+    {
+        return status switch
+        {
+            (int)OperatingStatus.Good => "#28a745",    // Tốt - Green
+            (int)OperatingStatus.Normal => "#17a2b8",  // Bình thường - Cyan
+            (int)OperatingStatus.Warning => "#ffc107", // Cảnh báo - Yellow
+            (int)OperatingStatus.Critial => "#dc3545", // Nghiêm trọng - Red
+            _ => "#6c757d"                            // Unknown - Gray
+        };
+    }
+
+    private async Task DrawCharts()
+    {
+        if (stationStatuses == null || !stationStatuses.Any())
+        {
+            return; // Thoát nếu không có dữ liệu
+        }
+
+        foreach (var station in stationStatuses)
+        {
+            if (station.StatusCounts?.Any() == true)
+            {
+                var chartData = new
+                {
+                    labels = station.StatusCounts.Select(s => s.StatusName).ToArray(),
+                    datasets = new[]
+                    {
+                    new
+                    {
+                        data = station.StatusCounts.Select(s => s.Percentage).ToArray(),
+                        backgroundColor = station.StatusCounts.Select(s => GetStatusColor(s.Status)).ToArray(),
+                        hoverOffset = 4
+                    }
+                }
+                };
+
+                var chartOptions = new
+                {
+                    responsive = true,
+                    maintainAspectRatio = false,
+                    plugins = new
+                    {
+                        legend = new
+                        {
+                            display = false // Ẩn chú giải mặc định, sử dụng chú giải tùy chỉnh
+                        }
+                    }
+                };
+
+                await JS.InvokeVoidAsync("drawPieChart", $"chart-{station.StationId}", chartData, chartOptions);
+            }
+        }
+    }
+}
+}

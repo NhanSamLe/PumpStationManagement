@@ -30,6 +30,7 @@ namespace PumpStationManagement_API.DTOs
         [MaxLength(500)]
         public string? Description { get; set; }
 
+        public int? CreatedBy { get; set; }
         public int? ModifiedBy { get; set; }
     }
 }

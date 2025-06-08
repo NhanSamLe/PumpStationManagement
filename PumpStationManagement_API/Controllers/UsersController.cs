@@ -48,7 +48,30 @@ namespace PumpStationManagement_API.Controllers
             }
         }
 
-        // GET: api/Users/5
+        // GET: api/Users/username/5
+        [HttpGet("username/{id}")]
+
+        public async Task<ActionResult<String>> GetUsername(int id)
+        {
+            try
+            {
+                var user = await context.Users
+                    .Where(u => u.UserId == id && !u.IsDelete)
+                    .FirstOrDefaultAsync();
+
+                if (user == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy người dùng" });
+                }
+
+                return Ok(user.Username);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi lấy thông tin người dùng", error = ex.Message });
+            }
+        }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(int id)
         {
@@ -89,6 +112,16 @@ namespace PumpStationManagement_API.Controllers
             if (!string.IsNullOrEmpty(userDto.PhoneNumber) && !IsValidPhoneNumber(userDto.PhoneNumber))
             {
                 return BadRequest(new { message = "Số điện thoại không hợp lệ" });
+            }
+            bool emailExists = await context.Users.AnyAsync(u => u.Email == userDto.Email);
+            bool phoneExists = await context.Users.AnyAsync(u => u.PhoneNumber == userDto.PhoneNumber);
+            if (emailExists)
+            {
+                return BadRequest(new { message = "Email đã tồn tại, vui lòng dùng email khác" });
+            }
+            if (phoneExists)
+            {
+                return BadRequest(new { message = "Số điện thoại đã tồn tại, vui lòng dùng số điện thoại khác" });
             }
             try
             {
@@ -137,7 +170,16 @@ namespace PumpStationManagement_API.Controllers
             {
                 return BadRequest(new { message = "Số điện thoại không hợp lệ" });
             }
-
+            bool emailExists = await context.Users.AnyAsync(u => u.Email == userDto.Email && u.UserId != id);
+            bool phoneExists = await context.Users.AnyAsync(u => u.PhoneNumber == userDto.PhoneNumber && u.UserId != id);
+            if (emailExists)
+            {
+                return BadRequest(new { message = "Email đã tồn tại, vui lòng dùng email khác" });
+            }
+            if (phoneExists)
+            {
+                return BadRequest(new { message = "Số điện thoại đã tồn tại, vui lòng dùng số điện thoại khác" });
+            }
             try
             {
                 var existingUser = await context.Users
@@ -271,7 +313,8 @@ namespace PumpStationManagement_API.Controllers
                 {
                     return Unauthorized(new { message = "Tên đăng nhập hoặc mật khẩu không đúng" });
                 }
-
+                user.LastLogin = DateTime.Now;
+                await context.SaveChangesAsync();
                 return Ok(user);
             }
             catch (Exception ex)

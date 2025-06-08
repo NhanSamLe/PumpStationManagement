@@ -3,73 +3,145 @@
 @using PumpStationManagemnet_BlazorApp.Models
 @using PumpStationManagemnet_BlazorApp.Services
 @using PumpStationManagemnet_BlazorApp.Enums
+@inject AuthService AuthService
 @inject OperatingService OperatingService
 @inject PumpStationService PumpStationService
 @inject IJSRuntime JS
 @inject NavigationManager NavigationManager
-<h3>Quản lý vận hành</h3>
 
-<div class="mb-3">
-    <div class="row">
-        <div class="col-md-6">
-            <input type="text" class="form-control" @bind="keyword" placeholder="Tìm kiếm theo tên máy bơm..." />
-        </div>
-        <div class="col-md-4">
-            <InputSelect class="form-control" @bind-Value="stationId">
-                <option value="">Tất cả trạm bơm</option>
-                @foreach (var station in pumpStations)
-                {
-                    <option value="@station.StationId">@station.StationName</option>
-                }
-            </InputSelect>
-        </div>
-        <div class="col-md-2">
-            <button class="btn btn-primary" @onclick="SearchOperatingData">Tìm kiếm</button>
+<link href="css/operating/operatings.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+<div class="operatings-container">
+    <h1 class="operatings-title">
+        <i class="fas fa-tachometer-alt"></i>
+        Quản lý vận hành
+    </h1>
+
+    <div class="search-section">
+        <div class="row align-items-end">
+            <div class="col-md-6">
+                <label class="search-label">
+                    <i class="fas fa-search me-2"></i>
+                    Tìm kiếm dữ liệu vận hành
+                </label>
+                <input type="text"
+                       class="form-control search-input"
+                       @bind="keyword"
+                       @onkeypress="OnKeyPress"
+                       placeholder="Nhập tên máy bơm..." />
+            </div>
+            <div class="col-md-2">
+                <label class="search-label">
+                    <i class="fas fa-pump-soap me-2"></i>
+                    Trạm bơm
+                </label>
+                <InputSelect class="form-select" @bind-Value="stationId">
+                    <option value="">Tất cả trạm bơm</option>
+                    @foreach (var station in pumpStations)
+                    {
+                        <option value="@station.StationId">@station.StationName</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="col-md-4 mt-3 mt-md-0">
+                <button class="btn btn-simple btn-primary-simple" @onclick="SearchOperatingData">
+                    <i class="fas fa-search me-2"></i>
+                    Tìm kiếm
+                </button>
+                <a class="btn btn-simple btn-success-simple ms-2" href="/operatings/create">
+                    <i class="fas fa-plus me-2"></i>
+                    Thêm mới
+                </a>
+            </div>
         </div>
     </div>
-    <a class="btn btn-success mt-2" href="/operatings/create">Thêm dữ liệu vận hành mới</a>
-</div>
 
-@if (operatingData == null)
-{
-    <p>Đang tải...</p>
-}
-else if (!operatingData.Any())
-{
-    <p>Không tìm thấy dữ liệu vận hành nào.</p>
-}
-else
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Mã</th>
-                <th>Máy bơm</th>
-                <th>Thời gian ghi</th>
-                <th>Hiệu Suất</th>
-                <th>Đánh giá</th>
-                <th>Hành động</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var datum in operatingData)
-            {
-                <tr>
-                    <td>@datum.DataId</td>
-                    <td>@(datum.Pump?.PumpName ?? "N/A")</td>
-                    <td>@datum.RecordTime.ToString("dd/MM/yyyy HH:mm")</td>
-                    <td>@datum.Efficiency</td>
-                    <td>@EnumHelper.GetDescription((OperatingStatus)datum.Status)</td>
-                    <td>
-                        <a class="btn btn-info btn-sm" href="/operatings/@datum.DataId">Chi tiết</a>
-                        <a class="btn btn-warning btn-sm" href="/operatings/edit/@datum.DataId">Sửa</a>
-                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteOperatingDatum(datum.DataId)">Xóa</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+    @if (operatingData == null)
+    {
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Đang tải dữ liệu...</div>
+        </div>
+    }
+    else if (!operatingData.Any())
+    {
+        <div class="no-data-container">
+            <i class="fas fa-tachometer-alt no-data-icon"></i>
+            <div class="no-data-text">
+                @if (string.IsNullOrEmpty(keyword) && stationId == null)
+                {
+                    <text>Chưa có dữ liệu vận hành nào trong hệ thống</text>
+                }
+                else
+                {
+                    <text>Không tìm thấy dữ liệu vận hành phù hợp với tiêu chí tìm kiếm</text>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-simple">
+                    <thead>
+                        <tr>
+                            <th>Mã</th>
+                            <th>Máy bơm</th>
+                            <th>Thời gian ghi</th>
+                            <th>Hiệu suất</th>
+                            <th>Đánh giá</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var datum in operatingData)
+                        {
+                            <tr>
+                                <td><strong>@datum.DataId</strong></td>
+                                <td>@(datum.Pump?.PumpName ?? "N/A")</td>
+                                <td>@datum.RecordTime.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@datum.Efficiency</td>
+                                <td>
+                                    <span class="status-badge @(datum.Status == (int)OperatingStatus.Good ? "status-good" :datum.Status == (int)OperatingStatus.Normal ? "status-normal" :datum.Status == (int)OperatingStatus.Warning ? "status-warning" : "status-critical")">
+                                        @EnumHelper.GetDescription((OperatingStatus)datum.Status)
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a class="btn btn-action btn-info-action"
+                                           href="/operatings/@datum.DataId"
+                                           title="Xem chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a class="btn btn-action btn-warning-action"
+                                           href="/operatings/edit/@datum.DataId"
+                                           title="Chỉnh sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn btn-action btn-danger-action"
+                                                @onclick="() => DeleteOperatingDatum(datum.DataId)"
+                                                title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    @if (AuthService.IsAuthenticated && AuthService.HasRole(UserRole.Admin))
+    {
+        <button class="btn btn-outline-success mt2" @onclick="ExportToExcel">
+            <i class="fas fa-file-excel me-2"></i>
+            Xuất Excel
+        </button>
+    }
+</div>
 
 @code {
     private List<OperatingData>? operatingData;
@@ -85,25 +157,56 @@ else
 
     private async Task SearchOperatingData()
     {
+        operatingData = null; // Show loading
+        StateHasChanged();
         operatingData = await OperatingService.GetOperatingDataAsync(keyword, stationId);
+    }
+
+    private async Task OnKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchOperatingData();
+        }
     }
 
     private async Task DeleteOperatingDatum(int id)
     {
-        var confirm = await JS.InvokeAsync<bool>("confirm", "Bạn có chắc muốn xóa dữ liệu vận hành này?");
-        if (confirm)
+        if (await JS.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa dữ liệu vận hành này không?"))
         {
-            var response = await OperatingService.DeleteOperatingDatumAsync(id, 1); // Assume ModifiedBy = 1
-            if (response.IsSuccessStatusCode)
+            try
             {
-                await JS.InvokeVoidAsync("alert", "Xóa dữ liệu vận hành thành công!");
-                operatingData = await OperatingService.GetOperatingDataAsync(keyword, stationId);
+                var response = await OperatingService.DeleteOperatingDatumAsync(id, 1);
+                if (response.IsSuccessStatusCode)
+                {
+                    operatingData = await OperatingService.GetOperatingDataAsync(keyword, stationId);
+                    await JS.InvokeVoidAsync("alert", "Xóa dữ liệu vận hành thành công!");
+                }
+                else
+                {
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                var errorMessage = await response.Content.ReadAsStringAsync();
-                await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+                await JS.InvokeVoidAsync("alert", $"Lỗi: {ex.Message}");
             }
+        }
+    }
+    private async Task ExportToExcel()
+    {
+        try
+        {
+           
+            var fileBytes = await OperatingService.ExportToExcel(keyword, stationId);
+           
+            await JS.InvokeVoidAsync("downloadFileFromStream", "OperatingData.xlsx", fileBytes);
+        }
+        catch (Exception ex)
+        {
+            
+            await JS.InvokeVoidAsync("alert", $"Lỗi khi xuất Excel: {ex.Message}");
         }
     }
 }

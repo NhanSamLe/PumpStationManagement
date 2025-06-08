@@ -13,6 +13,7 @@ builder.Services.AddScoped(sp => new HttpClient
 {
     BaseAddress = new Uri("http://localhost:5009/") // Base URL cho tất cả request
 });
+
 // Đăng ký UserService
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<PumpStationService>();
@@ -20,4 +21,6 @@ builder.Services.AddScoped<PumpService>();
 builder.Services.AddScoped<OperatingService>();
 builder.Services.AddScoped<MaintenanceService>();
 builder.Services.AddScoped<AlertService>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<StatisticsService>();
 await builder.Build().RunAsync();

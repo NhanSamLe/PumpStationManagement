@@ -1,4 +1,8 @@
 ﻿@inherits LayoutComponentBase
+@using PumpStationManagemnet_BlazorApp.Services
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -6,7 +10,13 @@
 
     <main>
         <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            <div class="d-flex align-items-center">
+                <span class="me-3">
+                    <i class="fas fa-user"></i>
+                    @UserName
+                </span>
+                <button class="btn btn-outline-danger btn-sm" @onclick="Logout">Logout</button>
+            </div>
         </div>
 
         <article class="content px-4">
@@ -14,3 +24,22 @@
         </article>
     </main>
 </div>
+@code {
+    private string UserName = "Unknown";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Lấy thông tin user từ AuthService hoặc nơi lưu session
+        var user = await AuthService.GetCurrentUserFromServerAsync();
+        if (user != null)
+        {
+            UserName = user.FullName;  // Thay đổi tùy theo property user
+        }
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        NavigationManager.NavigateTo("/login", true);
+    }
+}

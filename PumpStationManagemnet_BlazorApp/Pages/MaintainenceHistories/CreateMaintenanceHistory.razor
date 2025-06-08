@@ -3,72 +3,153 @@
 @using PumpStationManagemnet_BlazorApp.Models
 @using PumpStationManagemnet_BlazorApp.Services
 @using PumpStationManagemnet_BlazorApp.Enums
+@using System.Text.Json
 @inject MaintenanceService MaintenanceService
 @inject PumpService PumpService
 @inject UserService UserService
 @inject IJSRuntime JS
 @inject NavigationManager NavigationManager
-<h3>CreateMaintenanceHistory</h3>
 
-<EditForm Model="@maintenanceHistoryDto" OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+<link href="css/maintenance/maintenancehistories.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
-    <div class="mb-3">
-        <label class="form-label">Máy bơm</label>
-        <InputSelect class="form-control" @bind-Value="maintenanceHistoryDto.PumpId">
-            <option value="">Không chọn</option>
-            @foreach (var pump in pumps)
+<div class="maintenancehistories-container">
+    <h1 class="maintenancehistories-title">
+        <i class="fas fa-plus"></i>
+        Thêm lịch bảo trì mới
+    </h1>
+
+    <div class="form-card">
+        <EditForm Model="@maintenanceHistoryDto" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            @if (!string.IsNullOrEmpty(ErrorMessage))
             {
-                <option value="@pump.PumpId">@pump.PumpName</option>
+                <div class="alert alert-danger" role="alert">
+                    @ErrorMessage
+                </div>
             }
-        </InputSelect>
+
+            <div class="form-group">
+                <label class="form-label">Máy bơm</label>
+                <InputSelect class="form-select" @bind-Value="maintenanceHistoryDto.PumpId">
+                    <option value="">Chọn máy bơm</option>
+                    @foreach (var pump in pumps)
+                    {
+                        <option value="@pump.PumpId">@pump.PumpName</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => maintenanceHistoryDto.PumpId)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Loại bảo trì</label>
+                <InputSelect class="form-select" @bind-Value="maintenanceHistoryDto.MaintenanceType">
+                    @foreach (var option in maintainTypes)
+                    {
+                        <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => maintenanceHistoryDto.MaintenanceType)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Mô tả</label>
+                <InputTextArea class="form-control" @bind-Value="maintenanceHistoryDto.Description" placeholder="Nhập mô tả bảo trì" />
+                <ValidationMessage For="@(() => maintenanceHistoryDto.Description)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Ngày bắt đầu</label>
+                <InputDate class="form-control" @bind-Value="maintenanceHistoryDto.StartDate" />
+                <ValidationMessage For="@(() => maintenanceHistoryDto.StartDate)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Ngày kết thúc</label>
+                <InputDate class="form-control" @bind-Value="maintenanceHistoryDto.EndDate" />
+                <ValidationMessage For="@(() => maintenanceHistoryDto.EndDate)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Trạng thái</label>
+                <InputSelect class="form-select" @bind-Value="maintenanceHistoryDto.Status">
+                    @foreach (var option in maintainStatuses)
+                    {
+                        <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => maintenanceHistoryDto.Status)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Người thực hiện (ID)</label>
+                <InputSelect class="form-select" @bind-Value="maintenanceHistoryDto.PerformedBy">
+                    <option value="">Chọn người thực hiện</option>
+                    @foreach (var user in users)
+                    {
+                        <option value="@user.UserId">@user.Username</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => maintenanceHistoryDto.PerformedBy)" class="validation-message" />
+            </div>
+
+            
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-simple btn-primary-simple">
+                    <i class="fas fa-save me-2"></i>
+                    Tạo
+                </button>
+                <a class="btn btn-simple btn-secondary-simple" href="/maintenancehistories">
+                    <i class="fas fa-times me-2"></i>
+                    Hủy
+                </a>
+            </div>
+        </EditForm>
     </div>
-    <div class="mb-3">
-        <label class="form-label">Loại bảo trì</label>
-        <InputSelect class="form-control" @bind-Value="maintenanceHistoryDto.MaintenanceType">
-            <option value="">Chọn loại bảo trì</option>
-            @foreach (var option in maintainTypes)
-            {
-                <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
-            }
-        </InputSelect>
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Nội Dung</label>
-        <InputTextArea class="form-control" @bind-Value="maintenanceHistoryDto.Description" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Ngày bắt đầu</label>
-        <InputDate class="form-control" @bind-Value="maintenanceHistoryDto.StartDate" />
-    </div> 
-    <button type="submit" class="btn btn-primary">Tạo</button>
-    <a class="btn btn-secondary ms-2" href="/maintenancehistories">Hủy</a>
-</EditForm>
+</div>
 
 @code {
     private MaintenanceHistoryDTO maintenanceHistoryDto = new();
     private List<Pump> pumps = new();
+    private List<User> users = new();
     private List<KeyValuePair<Enum, string>> maintainTypes = new();
+    private List<KeyValuePair<Enum, string>> maintainStatuses = new();
+    private string? ErrorMessage;
+
     protected override async Task OnInitializedAsync()
     {
         maintainTypes = EnumHelper.GetEnumListWithDescriptions<MaintainType>();
+        maintainStatuses = EnumHelper.GetEnumListWithDescriptions<MaintainStatus>();
         pumps = await PumpService.GetPumpsAsync();
+        users = await UserService.GetUsersAsync();
+        maintenanceHistoryDto.Status = (int)MaintainStatus.Scheduled; // Default to Scheduled
+        maintenanceHistoryDto.StartDate = DateTime.Now; // Default to current date
     }
 
     private async Task HandleValidSubmit()
     {
-        maintenanceHistoryDto.Status = (int)MaintainStatus.Scheduled;
-        var response = await MaintenanceService.CreateMaintenanceHistoryAsync(maintenanceHistoryDto);
-        if (response.IsSuccessStatusCode)
+        ErrorMessage = null;
+        try
         {
-            await JS.InvokeVoidAsync("alert", "Tạo lịch sử bảo trì thành công!");
-            NavigationManager.NavigateTo("/maintenancehistories");
+            var response = await MaintenanceService.CreateMaintenanceHistoryAsync(maintenanceHistoryDto);
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Tạo lịch sử bảo trì thành công!");
+                NavigationManager.NavigateTo("/maintenancehistories");
+            }
+            else
+            {
+                var errorMessageJson = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(errorMessageJson);
+                ErrorMessage = doc.RootElement.GetProperty("message").GetString();
+                await JS.InvokeVoidAsync("alert", $"Lỗi: {ErrorMessage}");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            var errorMessage = await response.Content.ReadAsStringAsync();
-            await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+            ErrorMessage = $"Lỗi: {ex.Message}";
+            await JS.InvokeVoidAsync("alert", ErrorMessage);
         }
     }
 }

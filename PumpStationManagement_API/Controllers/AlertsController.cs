@@ -86,8 +86,7 @@ namespace PumpStationManagement_API.Controllers
             }
 
             try
-            {
-                // Kiểm tra PumpId hợp lệ (nếu có)
+            { 
                 if (alertDto.PumpId.HasValue)
                 {
                     var pumpExists = await context.Pumps
@@ -98,7 +97,6 @@ namespace PumpStationManagement_API.Controllers
                     }
                 }
 
-                // Kiểm tra ModifiedBy hợp lệ (nếu có) - sử dụng ModifiedBy thay vì CreatedBy để đồng nhất
                 if (alertDto.CreatedBy.HasValue)
                 {
                     var userExists = await context.Users

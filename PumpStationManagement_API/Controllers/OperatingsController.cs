@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using ClosedXML.Excel;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PumpStationManagement_API.DTOs;
+using PumpStationManagement_API.Enums;
 using PumpStationManagement_API.Models;
 using PumpStationManagement_API.Services;
 
@@ -184,6 +186,108 @@ namespace PumpStationManagement_API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi xóa dữ liệu vận hành", error = ex.Message });
+            }
+        }
+
+        [HttpGet("export-excel")]
+        public async Task<IActionResult> ExportOperatingDataToExcel([FromQuery] string? keyword = null, [FromQuery] int? stationId = null)
+        {
+            try
+            {
+                Console.WriteLine("Bắt đầu xuất Excel dữ liệu vận hành, keyword: {0}, stationId: {1}", keyword, stationId);
+
+                // Kiểm tra DbContext
+                if (context == null)
+                {
+                    Console.WriteLine("DbContext là null");
+                    return StatusCode(StatusCodes.Status500InternalServerError, "DbContext không được khởi tạo");
+                }
+
+                Console.WriteLine("Truy vấn OperatingDatas...");
+                IQueryable<OperatingData> query = context.OperatingDatas
+                    .Include(p => p.Pump)
+                    .ThenInclude(p => p.Station)
+                    .Where(p => !p.IsDelete);
+
+                if (stationId.HasValue && stationId > 0)
+                {
+                    Console.WriteLine("Áp dụng bộ lọc stationId: {0}", stationId);
+                    query = query.Where(p => p.Pump.StationId == stationId);
+                }
+
+                if (!string.IsNullOrEmpty(keyword))
+                {
+                    keyword = keyword.Trim().ToLower();
+                    Console.WriteLine("Áp dụng bộ lọc keyword: {0}", keyword);
+                    query = query.Where(p => p.Pump.PumpName != null && p.Pump.PumpName.ToLower().Contains(keyword));
+                }
+
+                query = query.OrderByDescending(p => p.DataId);
+               
+                var operatingData = await query.ToListAsync();
+            
+
+               
+                using var workbook = new XLWorkbook();
+                var worksheet = workbook.Worksheets.Add("OperatingData");
+
+                // Tiêu đề
+                worksheet.Cell(1, 1).Value = "Mã Dữ Liệu";
+                worksheet.Cell(1, 2).Value = "Tên Máy Bơm";
+                worksheet.Cell(1, 3).Value = "Tên Trạm Bơm";
+                worksheet.Cell(1, 4).Value = "Thời Gian Ghi Nhận";
+                worksheet.Cell(1, 5).Value = "Lưu Lượng (m³/h)";
+                worksheet.Cell(1, 6).Value = "Áp Suất (bar)";
+                worksheet.Cell(1, 7).Value = "Công Suất Tiêu Thụ (kW)";
+                worksheet.Cell(1, 8).Value = "Nhiệt Độ (°C)";
+                worksheet.Cell(1, 9).Value = "Giờ Chạy (h)";
+                worksheet.Cell(1, 10).Value = "Hiệu Suất (%)";
+                worksheet.Cell(1, 11).Value = "Trạng Thái";
+                worksheet.Cell(1, 12).Value = "Ngày Tạo";
+                worksheet.Cell(1, 13).Value = "Ngày Chỉnh Sửa";
+
+                // Dữ liệu
+                
+                int row = 2;
+                foreach (var item in operatingData)
+                {
+                   
+                    worksheet.Cell(row, 1).Value = item.DataId;
+                    worksheet.Cell(row, 2).Value = item.Pump?.PumpName ?? "N/A";
+                    worksheet.Cell(row, 3).Value = item.Pump?.Station?.StationName ?? "N/A";
+                    worksheet.Cell(row, 4).Value = item.RecordTime.ToString("dd/MM/yyyy HH:mm:ss");
+                    worksheet.Cell(row, 5).Value = item.FlowRate?.ToString("F2") ?? "N/A";
+                    worksheet.Cell(row, 6).Value = item.Pressure?.ToString("F2") ?? "N/A";
+                    worksheet.Cell(row, 7).Value = item.PowerConsumption?.ToString("F2") ?? "N/A";
+                    worksheet.Cell(row, 8).Value = item.Temperature?.ToString("F2") ?? "N/A";
+                    worksheet.Cell(row, 9).Value = item.RunningHours?.ToString("F2") ?? "N/A";
+                    worksheet.Cell(row, 10).Value = item.Efficiency?.ToString("F2") ?? "N/A";
+                    worksheet.Cell(row, 11).Value = Enum.IsDefined(typeof(OperatingStatus), item.Status)
+                        ? EnumHelper.GetDescription((OperatingStatus)item.Status)
+                        : "Trạng thái không xác định";
+                    worksheet.Cell(row, 12).Value = item.CreatedOn?.ToString("dd/MM/yyyy HH:mm:ss") ?? "N/A";
+                    worksheet.Cell(row, 13).Value = item.ModifiedOn?.ToString("dd/MM/yyyy HH:mm:ss") ?? "N/A";
+                    row++;
+                }
+
+                
+                using var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+                stream.Position = 0;
+
+                
+                return File(stream.ToArray(),
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            "OperatingData.xlsx");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi xuất Excel: {ex.Message}\nStackTrace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Lỗi khi tạo file Excel: {ex.Message}");
             }
         }
     }

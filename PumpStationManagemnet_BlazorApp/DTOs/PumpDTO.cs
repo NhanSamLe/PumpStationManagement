@@ -30,7 +30,7 @@ namespace PumpStationManagemnet_BlazorApp.DTOs
 
         [MaxLength(500, ErrorMessage = "Mô tả không được vượt quá 500 ký tự")]
         public string? Description { get; set; }
-
+        public int? CreatedBy { get; set; }
         public int? ModifiedBy { get; set; }
     }
 }

@@ -4,61 +4,122 @@
 @using PumpStationManagemnet_BlazorApp.Services
 @using PumpStationManagemnet_BlazorApp.Enums
 @using PumpStationManagemnet_BlazorApp.Public
+@using System.Text.Json
 @inject OperatingService OperatingService
 @inject PumpService PumpService
 @inject PumpStationService PumpStationService
 @inject IJSRuntime JS
 @inject NavigationManager NavigationManager
-<h3>EditOperating</h3>
-@if (operatingDatum == null)
-{
-    <p>Đang tải...</p>
-}
-else
-{
-    <EditForm Model="@operatingDataDto" OnValidSubmit="HandleValidSubmit">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
 
-        <div class="mb-3">
-            <label class="form-label">Máy bơm</label>
-            <InputSelect class="form-control" @bind-Value="operatingDataDto.PumpId">
-                <option value="">Chọn máy bơm</option>
-                @foreach (var pump in pumps)
+<link href="css/operating/operatings.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+<div class="operatings-container">
+    <h1 class="operatings-title">
+        <i class="fas fa-edit"></i>
+        Chỉnh sửa dữ liệu vận hành
+    </h1>
+
+    @if (operatingDatum == null)
+    {
+        <div class="form-card">
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Đang tải dữ liệu...</div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="form-card">
+            <EditForm Model="@operatingDataDto" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                @if (!string.IsNullOrEmpty(ErrorMessage))
                 {
-                    <option value="@pump.PumpId">@pump.PumpName</option>
+                    <div class="alert alert-danger" role="alert">
+                        @ErrorMessage
+                    </div>
                 }
-            </InputSelect>
+
+                <div class="form-group">
+                    <label class="form-label">Máy bơm</label>
+                    <InputSelect class="form-select" @bind-Value="operatingDataDto.PumpId">
+                        <option value="">Chọn máy bơm</option>
+                        @foreach (var pump in pumps)
+                        {
+                            <option value="@pump.PumpId">@pump.PumpName</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => operatingDataDto.PumpId)" class="validation-message" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Thời gian ghi nhận</label>
+                    <InputDate class="form-control" @bind-Value="operatingDataDto.RecordTime" />
+                    <ValidationMessage For="@(() => operatingDataDto.RecordTime)" class="validation-message" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Lưu lượng</label>
+                    <InputNumber class="form-control" @bind-Value="operatingDataDto.FlowRate" placeholder="Nhập lưu lượng" />
+                    <ValidationMessage For="@(() => operatingDataDto.FlowRate)" class="validation-message" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Áp suất</label>
+                    <InputNumber class="form-control" @bind-Value="operatingDataDto.Pressure" placeholder="Nhập áp suất" />
+                    <ValidationMessage For="@(() => operatingDataDto.Pressure)" class="validation-message" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Công suất tiêu thụ</label>
+                    <InputNumber class="form-control" @bind-Value="operatingDataDto.PowerConsumption" placeholder="Nhập công suất tiêu thụ" />
+                    <ValidationMessage For="@(() => operatingDataDto.PowerConsumption)" class="validation-message" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Nhiệt độ</label>
+                    <InputNumber class="form-control" @bind-Value="operatingDataDto.Temperature" placeholder="Nhập nhiệt độ" />
+                    <ValidationMessage For="@(() => operatingDataDto.Temperature)" class="validation-message" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Số giờ vận hành</label>
+                    <InputNumber class="form-control" @bind-Value="operatingDataDto.RunningHours" placeholder="Nhập số giờ vận hành" />
+                    <ValidationMessage For="@(() => operatingDataDto.RunningHours)" class="validation-message" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Hiệu suất</label>
+                    <InputNumber class="form-control" @bind-Value="operatingDataDto.Efficiency" readonly />
+                    <ValidationMessage For="@(() => operatingDataDto.Efficiency)" class="validation-message" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Trạng thái</label>
+                    <InputSelect class="form-select" @bind-Value="operatingDataDto.Status" disabled>
+                        @foreach (var status in operatingStatuses)
+                        {
+                            <option value="@Convert.ToInt32(status.Key)">@status.Value</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => operatingDataDto.Status)" class="validation-message" />
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-simple btn-primary-simple">
+                        <i class="fas fa-save me-2"></i>
+                        Lưu
+                    </button>
+                    <a class="btn btn-simple btn-secondary-simple" href="/operatings">
+                        <i class="fas fa-times me-2"></i>
+                        Hủy
+                    </a>
+                </div>
+            </EditForm>
         </div>
-       
-        <div class="mb-3">
-            <label class="form-label">Lưu lượng</label>
-            <InputNumber class="form-control" @bind-Value="operatingDataDto.FlowRate" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Áp suất</label>
-            <InputNumber class="form-control" @bind-Value="operatingDataDto.Pressure" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Công suất tiêu thụ</label>
-            <InputNumber class="form-control" @bind-Value="operatingDataDto.PowerConsumption" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Nhiệt độ</label>
-            <InputNumber class="form-control" @bind-Value="operatingDataDto.Temperature" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Số giờ vận hành</label>
-            <InputNumber class="form-control" @bind-Value="operatingDataDto.RunningHours" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Thời gian ghi nhận</label>
-            <InputDate class="form-control" @bind-Value="operatingDataDto.RecordTime" />
-        </div>
-        <button type="submit" class="btn btn-primary">Lưu</button>
-        <a class="btn btn-secondary ms-2" href="/operatings">Hủy</a>
-    </EditForm>
-}
+    }
+</div>
 
 @code {
     [Parameter]
@@ -67,46 +128,60 @@ else
     private OperatingData? operatingDatum;
     private OperatingDataDTO operatingDataDto = new();
     private List<Pump> pumps = new();
+    private List<KeyValuePair<Enum, string>> operatingStatuses = new();
+    private string? ErrorMessage;
 
     protected override async Task OnInitializedAsync()
     {
+        operatingStatuses = EnumHelper.GetEnumListWithDescriptions<OperatingStatus>();
         pumps = await PumpService.GetPumpsAsync();
         operatingDatum = await OperatingService.GetOperatingDatumAsync(Id);
         if (operatingDatum != null)
         {
             operatingDataDto = new OperatingDataDTO
-            {
-                PumpId = operatingDatum.PumpId ?? 0,
-                RecordTime = operatingDatum.RecordTime,
-                FlowRate = operatingDatum.FlowRate,
-                Pressure = operatingDatum.Pressure,
-                PowerConsumption = operatingDatum.PowerConsumption,
-                Temperature = operatingDatum.Temperature,
-                RunningHours = operatingDatum.RunningHours,
-                Efficiency = operatingDatum.Efficiency,
-                Status = operatingDatum.Status
-            };
+                {
+                    PumpId = operatingDatum.PumpId ?? 0,
+                    RecordTime = operatingDatum.RecordTime,
+                    FlowRate = operatingDatum.FlowRate,
+                    Pressure = operatingDatum.Pressure,
+                    PowerConsumption = operatingDatum.PowerConsumption,
+                    Temperature = operatingDatum.Temperature,
+                    RunningHours = operatingDatum.RunningHours,
+                    Efficiency = operatingDatum.Efficiency,
+                    Status = operatingDatum.Status
+                };
         }
     }
 
     private async Task HandleValidSubmit()
     {
-        operatingDataDto.Efficiency = CaculateHelper.CaculateEfficiency(
-        operatingDataDto.FlowRate ?? 0,
-        operatingDataDto.Pressure ?? 0,
-        operatingDataDto.PowerConsumption ?? 0
-        );
-        operatingDataDto.Status = CaculateHelper.EfficiencyStatus(operatingDataDto.Efficiency ?? 0);
-        var response = await OperatingService.UpdateOperatingDatumAsync(Id, operatingDataDto);
-        if (response.IsSuccessStatusCode)
+        ErrorMessage = null;
+        try
         {
-            await JS.InvokeVoidAsync("alert", "Cập nhật dữ liệu vận hành thành công!");
-            NavigationManager.NavigateTo("/operatings");
+            operatingDataDto.Efficiency = CaculateHelper.CaculateEfficiency(
+                operatingDataDto.FlowRate ?? 0,
+                operatingDataDto.Pressure ?? 0,
+                operatingDataDto.PowerConsumption ?? 0
+            );
+            operatingDataDto.Status = CaculateHelper.EfficiencyStatus(operatingDataDto.Efficiency ?? 0);
+            var response = await OperatingService.UpdateOperatingDatumAsync(Id, operatingDataDto);
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Cập nhật dữ liệu vận hành thành công!");
+                NavigationManager.NavigateTo("/operatings");
+            }
+            else
+            {
+                var errorMessageJson = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(errorMessageJson);
+                ErrorMessage = doc.RootElement.GetProperty("message").GetString();
+                await JS.InvokeVoidAsync("alert", $"Lỗi: {ErrorMessage}");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            var errorMessage = await response.Content.ReadAsStringAsync();
-            await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+            ErrorMessage = $"Lỗi: {ex.Message}";
+            await JS.InvokeVoidAsync("alert", ErrorMessage);
         }
     }
 }

@@ -6,39 +6,125 @@
 @inject PumpStationManagemnet_BlazorApp.Services.UserService UserService
 @inject IJSRuntime JS
 @inject NavigationManager NavigationManager
-<h3 class="text-center mb-3">UserDetail</h3>
-@if (user == null)
-{
-    <p>Đang tải...</p>
-}
-else
-{
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">@user.FullName</h5>
-            <p class="card-text"><strong>ID:</strong> @user.UserId</p>
-            <p class="card-text"><strong>Tên đăng nhập:</strong> @user.Username</p>
-            <p class="card-text"><strong>Email:</strong> @user.Email</p>
-            <p class="card-text"><strong>Số điện thoại:</strong> @user.PhoneNumber</p>
-            <p class="card-text"><strong>Vai trò:</strong> @EnumHelper.GetDescription((UserRole)user.Role)</p>
-            <p class="card-text"><strong>Trạng thái:</strong> @(user.IsActive == true ? "Hoạt động" : "Không hoạt động")</p>
-            <p class="card-text"><strong>Người tạo:</strong> @user.CreatedBy</p>
-            <p class="card-text"><strong>Ngày tạo:</strong> @user.CreatedOn?.ToString("dd/MM/yyyy")</p>
-            <p class="card-text"><strong>Người tạo:</strong> @user.ModifiedBy</p>
-            <p class="card-text"><strong>Ngày chỉnh sửa:</strong> @user.ModifiedOn?.ToString("dd/MM/yyyy")</p>
+
+<link href="css/user/user-detail.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+<div class="user-detail-container">
+    <h1 class="user-detail-title">
+        <i class="fas fa-user"></i>
+        Chi tiết người dùng
+    </h1>
+
+    @if (user == null)
+    {
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Đang tải dữ liệu...</div>
         </div>
-    </div>
-    <a class="btn btn-primary mt-3" href="/users">Quay lại</a>
-    <a class="btn btn-warning mt-3 ms-2" href="/users/edit/@user.UserId">Chỉnh sửa</a>
-}
+    }
+    else
+    {
+        <div class="card-container">
+            <div class="card-header">
+                <div class="user-avatar">
+                    @GetUserInitials(user.FullName ?? user.Username)
+                </div>
+                <div class="user-header-info">
+                    <h2 class="user-name">@user.FullName</h2>
+                    <span class="username">@user.Username</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-id-badge me-2"></i>ID:</span>
+                    <span class="info-value">@user.UserId</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-envelope me-2"></i>Email:</span>
+                    <span class="info-value">@user.Email</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-phone me-2"></i>Số điện thoại:</span>
+                    <span class="info-value">@user.PhoneNumber</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-user-tag me-2"></i>Vai trò:</span>
+                    <span class="role-badge">@EnumHelper.GetDescription((UserRole)user.Role)</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-toggle-on me-2"></i>Trạng thái:</span>
+                    <span class="status-badge @(user.IsActive == true ? "status-active" : "status-inactive")">
+                        @(user.IsActive == true ? "Hoạt động" : "Tạm khóa")
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-user-plus me-2"></i>Người tạo:</span>
+                    <span class="info-value">@createdBy</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-calendar-plus me-2"></i>Ngày tạo:</span>
+                    <span class="info-value">@user.CreatedOn?.ToString("dd/MM/yyyy")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-user-edit me-2"></i>Người chỉnh sửa:</span>
+                    <span class="info-value">@modifiedBy</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-calendar-edit me-2"></i>Ngày chỉnh sửa:</span>
+                    <span class="info-value">@user.ModifiedOn?.ToString("dd/MM/yyyy")</span>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a class="btn btn-simple btn-primary-simple me-2" href="/users">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Quay lại
+                </a>
+                <a class="btn btn-simple btn-warning-simple" href="/users/edit/@user.UserId">
+                    <i class="fas fa-edit me-2"></i>
+                    Chỉnh sửa
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
 @code {
     [Parameter]
     public int Id { get; set; }
 
     private User? user;
+    private string createdBy = string.Empty;
+    private string modifiedBy = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
         user = await UserService.GetUserAsync(Id);
+        createdBy = user.CreatedBy.HasValue
+            ? (user.CreatedBy.Value != 0
+                ? await UserService.GetUserNameAsync(user.CreatedBy.Value)
+                : user.Username)
+            : "N/A";
+        modifiedBy = user.ModifiedBy.HasValue
+            ? await UserService.GetUserNameAsync(user.ModifiedBy.Value)
+            : "N/A";
+    }
+
+    private string GetUserInitials(string? name)
+    {
+        if (string.IsNullOrEmpty(name))
+            return "??";
+
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+        {
+            return $"{parts[0][0]}{parts[^1][0]}".ToUpper();
+        }
+        else if (parts.Length == 1)
+        {
+            return parts[0].Length >= 2 ? parts[0].Substring(0, 2).ToUpper() : parts[0].ToUpper();
+        }
+
+        return "??";
     }
 }

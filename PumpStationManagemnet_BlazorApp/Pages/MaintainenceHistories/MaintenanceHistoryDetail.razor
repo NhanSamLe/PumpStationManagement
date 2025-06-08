@@ -7,31 +7,82 @@
 @inject PumpStationService PumpStationService
 @inject IJSRuntime JS
 @inject NavigationManager NavigationManager
-<h3>MaintenanceHistoryDetail</h3>
 
-@if (maintenanceHistory == null)
-{
-    <p>Đang tải...</p>
-}
-else
-{
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Lịch sử bảo trì : Mã @maintenanceHistory.MaintenanceId</h5>
-            <p class="card-text"><strong>Máy bơm:</strong> @(maintenanceHistory.Pump?.PumpName ?? "N/A")</p>
-            <p class="card-text"><strong>Trạm bơm:</strong> @(pumpStations.FirstOrDefault(s => s.StationId == maintenanceHistory.Pump?.StationId)?.StationName ?? "N/A")</p>
-            <p class="card-text"><strong>Loại bảo trì:</strong> @EnumHelper.GetDescription((MaintainType)maintenanceHistory.MaintenanceType)</p>
-            <p class="card-text"><strong>Nội Dung:</strong> @maintenanceHistory.Description</p>
-            <p class="card-text"><strong>Ngày bắt đầu:</strong> @maintenanceHistory.StartDate.ToString("dd/MM/yyyy")</p>
-            <p class="card-text"><strong>Ngày kết thúc:</strong> @(maintenanceHistory.EndDate?.ToString("dd/MM/yyyy") ?? "Chưa hoàn thành")</p>
-            <p class="card-text"><strong>Trạng thái:</strong> @EnumHelper.GetDescription((MaintainStatus)maintenanceHistory.Status)</p>
-            <p class="card-text"><strong>Người thực hiện:</strong> @(maintenanceHistory.PerformedByNavigation?.Username ?? "N/A")</p>
-            <p class="card-text"><strong>Ngày tạo:</strong> @maintenanceHistory.CreatedOn?.ToString("dd/MM/yyyy")</p>
+<link href="css/maintenance/maintenancehistories.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+<div class="maintenancehistories-container">
+    <h1 class="maintenancehistories-title">
+        <i class="fas fa-tools"></i>
+        Chi tiết lịch sử bảo trì
+    </h1>
+
+    @if (maintenanceHistory == null)
+    {
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Đang tải dữ liệu...</div>
         </div>
-    </div>
-    <a class="btn btn-primary mt-3" href="/maintenancehistories">Quay lại</a>
-    <a class="btn btn-warning mt-3 ms-2" href="/maintenancehistories/edit/@maintenanceHistory.MaintenanceId">Chỉnh sửa</a>
-}
+    }
+    else
+    {
+        <div class="detail-container">
+            <div class="card-header">
+                <h2 class="card-title">Lịch sử bảo trì: Mã @maintenanceHistory.MaintenanceId</h2>
+            </div>
+            <div class="card-body">
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-faucet me-2"></i>Máy bơm:</span>
+                    <span class="info-value">@(maintenanceHistory.Pump?.PumpName ?? "N/A")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-pump-soap me-2"></i>Trạm bơm:</span>
+                    <span class="info-value">@(pumpStations.FirstOrDefault(s => s.StationId == maintenanceHistory.Pump?.StationId)?.StationName ?? "N/A")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-wrench me-2"></i>Loại bảo trì:</span>
+                    <span class="info-value">@EnumHelper.GetDescription((MaintainType)maintenanceHistory.MaintenanceType)</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-file-alt me-2"></i>Nội dung:</span>
+                    <span class="info-value">@maintenanceHistory.Description</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-calendar-day me-2"></i>Ngày bắt đầu:</span>
+                    <span class="info-value">@maintenanceHistory.StartDate.ToString("dd/MM/yyyy")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-calendar-check me-2"></i>Ngày kết thúc:</span>
+                    <span class="info-value">@(maintenanceHistory.EndDate?.ToString("dd/MM/yyyy") ?? "Chưa hoàn thành")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-info-circle me-2"></i>Trạng thái:</span>
+                    <span class="status-badge @(maintenanceHistory.Status == (int)MaintainStatus.Scheduled ? "status-scheduled" : maintenanceHistory.Status == (int)MaintainStatus.InProgress ? "status-inprogress" : "status-completed")">
+                        @EnumHelper.GetDescription((MaintainStatus)maintenanceHistory.Status)
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-user me-2"></i>Người thực hiện:</span>
+                    <span class="info-value">@(maintenanceHistory.PerformedByNavigation?.Username ?? "N/A")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-calendar-plus me-2"></i>Ngày tạo:</span>
+                    <span class="info-value">@(maintenanceHistory.CreatedOn?.ToString("dd/MM/yyyy") ?? "N/A")</span>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a class="btn btn-simple btn-primary-simple me-2" href="/maintenancehistories">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Quay lại
+                </a>
+                <a class="btn btn-simple btn-warning-simple" href="/maintenancehistories/edit/@maintenanceHistory.MaintenanceId">
+                    <i class="fas fa-edit me-2"></i>
+                    Chỉnh sửa
+                </a>
+            </div>
+        </div>
+    }
+</div>
 
 @code {
     [Parameter]

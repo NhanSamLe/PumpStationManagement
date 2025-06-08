@@ -1,0 +1,138 @@
+﻿@page "/login"
+@using PumpStationManagemnet_BlazorApp.Layout
+@using PumpStationManagemnet_BlazorApp.DTOs
+@using PumpStationManagemnet_BlazorApp.Request
+@using PumpStationManagemnet_BlazorApp.Services
+@layout AuthLayout 
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+
+<script src="js/auth.js"></script>
+<link href="css/auth.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+<div class="auth-container">
+    <div class="auth-card">
+        <h1 class="auth-title">
+            <i class="fas fa-sign-in-alt"></i>
+            Đăng nhập
+        </h1>
+
+        <EditForm Model="@loginDto" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    @ErrorMessage
+                </div>
+            }
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-user me-2"></i>
+                    Tên đăng nhập
+                </label>
+                <InputText class="form-control" @bind-Value="loginDto.Username"
+                           placeholder="Nhập tên đăng nhập" required />
+                <ValidationMessage For="@(() => loginDto.Username)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-lock me-2"></i>
+                    Mật khẩu
+                </label>
+                <InputText type="password" class="form-control" @bind-Value="loginDto.Password"
+                           placeholder="Nhập mật khẩu" required />
+                <ValidationMessage For="@(() => loginDto.Password)" class="validation-message" />
+            </div>
+
+            <button type="submit" class="btn btn-simple btn-primary-simple" disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <i class="fas fa-spinner fa-spin me-2"></i>
+                    <span>Đang đăng nhập...</span>
+                }
+                else
+                {
+                    <i class="fas fa-sign-in-alt me-2"></i>
+                    <span>Đăng nhập</span>
+                }
+            </button>
+        </EditForm>
+
+        <div class="auth-footer">
+            Chưa có tài khoản? <a href="/register">Đăng ký ngay</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginRequest loginDto = new();
+    private string? ErrorMessage;
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Kiểm tra nếu đã đăng nhập thì chuyển hướng
+        await AuthService.RestoreSessionAsync();
+        if (AuthService.IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/alerts");
+        }
+    }
+
+    private async Task HandleLogin()
+    {
+        if (string.IsNullOrWhiteSpace(loginDto.Username) || string.IsNullOrWhiteSpace(loginDto.Password))
+        {
+            ErrorMessage = "Vui lòng nhập đầy đủ thông tin đăng nhập";
+            return;
+        }
+
+        ErrorMessage = null;
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var (success, message, user) = await AuthService.LoginAsync(loginDto);
+
+            if (success && user != null)
+            {
+                await JS.InvokeVoidAsync("showToast", "success", "Đăng nhập thành công!");
+
+                // Chuyển hướng đến trang mặc định hoặc trang được yêu cầu trước đó
+                var returnUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+                var redirectUrl = "/"; // Trang mặc định sau khi đăng nhập
+
+                NavigationManager.NavigateTo(redirectUrl);
+            }
+            else
+            {
+                ErrorMessage = message ?? "Đăng nhập thất bại";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Lỗi kết nối: {ex.Message}";
+            await JS.InvokeVoidAsync("showToast", "error", ErrorMessage);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !isLoading)
+        {
+            await HandleLogin();
+        }
+    }
+}

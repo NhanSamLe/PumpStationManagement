@@ -5,6 +5,8 @@ using PumpStationManagement_API.Models;
 using PumpStationManagement_API.Services;
 using PumpStationManagement_API.Enums;
 using PumpStationManagement_API.DTOs;
+using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Bibliography;
 
 namespace PumpStationManagement_API.Controllers
 {
@@ -189,5 +191,145 @@ namespace PumpStationManagement_API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi xóa máy bơm", error = ex.Message });
             }
         }
+
+        [HttpGet("export-excel")]
+        public async Task<IActionResult> ExportToExcel([FromQuery] string? keyword = null, [FromQuery] int? stationId = null)
+        {
+            try
+            {
+            
+
+                // Kiểm tra DbContext
+                if (context == null)
+                {
+                    Console.WriteLine("DbContext là null");
+                    return StatusCode(500, "DbContext không được khởi tạo");
+                }
+
+
+                IQueryable<Pump> query = context.Pumps.Where(p => !p.IsDelete);
+
+                if (stationId.HasValue && stationId > 0)
+                {
+                    query = query.Where(p => p.StationId == stationId);
+                }
+
+                if (!string.IsNullOrEmpty(keyword))
+                {
+                    keyword = keyword.Trim().ToLower();
+                    query = query.Where(p => p.PumpName.ToLower().Contains(keyword) ||
+                                            p.SerialNumber.ToLower().Contains(keyword));
+                }
+                query = query.OrderByDescending(p => p.PumpId);
+                Console.WriteLine("Thực hiện truy vấn...");
+                var pumps = await query.ToListAsync();
+                Console.WriteLine("Lấy được {0} trạm bơm", pumps.Count);
+
+                Console.WriteLine("Tạo file Excel với ClosedXML...");
+                using var workbook = new XLWorkbook();
+                var worksheet = workbook.Worksheets.Add("PumpStations");
+
+                // Tiêu đề
+                worksheet.Cell(1, 1).Value = "Mã";
+                worksheet.Cell(1, 2).Value = "Tên Máy Bơm";
+                worksheet.Cell(1, 3).Value = "Loại Máy Bơm";
+                worksheet.Cell(1, 4).Value = "Trạm Bơm";
+                worksheet.Cell(1, 5).Value = "Công Suất";
+                worksheet.Cell(1, 6).Value = "Trạng Thái";
+                worksheet.Cell(1, 7).Value = "Nhà Sản Xuất";
+                worksheet.Cell(1, 7).Value = "Số serial";
+                worksheet.Cell(1, 7).Value = "Ngày hết bảo hành";
+                worksheet.Cell(1, 7).Value = "Mô tả";
+                worksheet.Cell(1, 7).Value = "Ngày tạo";
+                worksheet.Cell(1, 7).Value = "Ngày chỉnh sửa";
+
+                // Dữ liệu
+                Console.WriteLine("Ghi dữ liệu vào worksheet...");
+                int row = 2;
+                foreach (var item in pumps)
+                {
+                    
+                    worksheet.Cell(row, 1).Value = item.PumpId;
+                    worksheet.Cell(row, 2).Value = item.PumpName ?? "N/A";
+                    worksheet.Cell(row, 3).Value = EnumHelper.GetDescription((PumpType)item.PumpType);
+                    worksheet.Cell(row, 4).Value = item.Station?.StationName ?? "N/A";
+                    worksheet.Cell(row, 5).Value =item.Capacity;
+                    worksheet.Cell(row, 6).Value = EnumHelper.GetDescription((PumpStatus)item.Status);
+                    worksheet.Cell(row, 7).Value = item.Manufacturer;
+                    worksheet.Cell(row, 8).Value = item.SerialNumber;
+                    worksheet.Cell(row, 9).Value = item.WarrantyExpireDate?.ToString("dd/MM/yyyy") ?? "N/A";
+                    worksheet.Cell(row, 10).Value = item.Description;
+                    worksheet.Cell(row, 11).Value = item.CreatedOn?.ToString("dd/MM/yyyy") ?? "N/A";
+                    worksheet.Cell(row, 12).Value = item.ModifiedOn?.ToString("dd/MM/yyyy") ?? "N/A";
+                    row++;
+                }
+
+                Console.WriteLine("Lưu file Excel vào stream...");
+                using var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+                stream.Position = 0;
+
+                Console.WriteLine("Trả về file Excel");
+                return File(stream.ToArray(),
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            "PumpStations.xlsx");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi xuất Excel: {ex.Message}\nStackTrace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
+                return StatusCode(500, $"Lỗi khi tạo file Excel: {ex.Message}");
+            }
+        }
+
+        [HttpPut("set-active-all")]
+        public async Task<ActionResult> SetAllPumpsActive([FromQuery] int modifiedBy)
+        {
+            try
+            {
+                var pumps = await context.Pumps.Where(p => !p.IsDelete).ToListAsync();
+
+                foreach (var pump in pumps)
+                {
+                    pump.Status = (int)PumpStatus.Active;
+                    pump.ModifiedBy = modifiedBy;
+                    pump.ModifiedOn = DateTime.Now;
+                }
+
+                await context.SaveChangesAsync();
+                return Ok(new { message = "Đã chuyển trạng thái tất cả máy bơm thành Đang hoạt động" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi cập nhật trạng thái máy bơm", error = ex.Message });
+            }
+        }
+
+        [HttpPut("set-inactive-all")]
+        public async Task<ActionResult> SetAllPumpsInactive([FromQuery] int modifiedBy)
+        {
+            try
+            {
+                var pumps = await context.Pumps.Where(p => !p.IsDelete).ToListAsync();
+
+                foreach (var pump in pumps)
+                {
+                    pump.Status = (int)PumpStatus.Inactive;
+                    pump.ModifiedBy = modifiedBy;
+                    pump.ModifiedOn = DateTime.Now;
+                }
+
+                await context.SaveChangesAsync();
+                return Ok(new { message = "Đã chuyển trạng thái tất cả máy bơm thành Ngừng hoạt động" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi cập nhật trạng thái máy bơm", error = ex.Message });
+            }
+        }
+
     }
 }

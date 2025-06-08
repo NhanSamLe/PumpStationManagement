@@ -1,86 +1,155 @@
 ﻿@page "/maintenancehistories"
 @using PumpStationManagemnet_BlazorApp.DTOs
 @using PumpStationManagemnet_BlazorApp.Models
-@using PumpStationManagemnet_BlazorApp.Enums    
+@using PumpStationManagemnet_BlazorApp.Enums
 @using PumpStationManagemnet_BlazorApp.Services
 @inject MaintenanceService MaintenanceService
 @inject PumpStationService PumpStationService
 @inject IJSRuntime JS
 @inject NavigationManager NavigationManager
-<h3>Lịch sử bảo trì</h3>
 
-<div class="mb-3">
-    <div class="row">
-        <div class="col-md-6">
-            <input type="text" class="form-control" @bind="keyword" placeholder="Tìm kiếm theo tên máy bơm hoặc mô tả..." />
-        </div>
-        <div class="col-md-4">
-            <InputSelect class="form-control" @bind-Value="stationId">
-                <option value="">Tất cả trạm bơm</option>
-                @foreach (var station in pumpStations)
-                {
-                    <option value="@station.StationId">@station.StationName</option>
-                }
-            </InputSelect>
-        </div>
-        <div class="col-md-2">
-            <button class="btn btn-primary" @onclick="SearchMaintenanceHistories">Tìm kiếm</button>
+<link href="css/maintenance/maintenancehistories.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+<div class="maintenancehistories-container">
+    <h1 class="maintenancehistories-title">
+        <i class="fas fa-tools"></i>
+        Lịch sử bảo trì
+    </h1>
+
+    <div class="search-section">
+        <div class="row align-items-end">
+            <div class="col-md-6">
+                <label class="search-label">
+                    <i class="fas fa-search me-2"></i>
+                    Tìm kiếm lịch sử bảo trì
+                </label>
+                <input type="text"
+                       class="form-control search-input"
+                       @bind="keyword"
+                       @onkeypress="OnKeyPress"
+                       placeholder="Nhập tên máy bơm hoặc mô tả..." />
+            </div>
+            <div class="col-md-2">
+                <label class="search-label">
+                    <i class="fas fa-pump-soap me-2"></i>
+                    Trạm bơm
+                </label>
+                <InputSelect class="form-select" @bind-Value="stationId">
+                    <option value="">Tất cả trạm bơm</option>
+                    @foreach (var station in pumpStations)
+                    {
+                        <option value="@station.StationId">@station.StationName</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="col-md-4 mt-3 mt-md-0">
+                <button class="btn btn-simple btn-primary-simple" @onclick="SearchMaintenanceHistories">
+                    <i class="fas fa-search me-2"></i>
+                    Tìm kiếm
+                </button>
+                <a class="btn btn-simple btn-success-simple ms-2" href="/maintenancehistories/create">
+                    <i class="fas fa-plus me-2"></i>
+                    Thêm mới
+                </a>
+            </div>
         </div>
     </div>
-    <a class="btn btn-success mt-2" href="/maintenancehistories/create">Thêm lịch sử bảo trì</a>
+
+    @if (maintenanceHistories == null)
+    {
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Đang tải dữ liệu...</div>
+        </div>
+    }
+    else if (!maintenanceHistories.Any())
+    {
+        <div class="no-data-container">
+            <i class="fas fa-tools no-data-icon"></i>
+            <div class="no-data-text">
+                @if (string.IsNullOrEmpty(keyword) && stationId == null)
+                {
+                    <text>Chưa có lịch sử bảo trì nào trong hệ thống</text>
+                }
+                else
+                {
+                    <text>Không tìm thấy lịch sử bảo trì phù hợp với tiêu chí tìm kiếm</text>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-simple">
+                    <thead>
+                        <tr>
+                            <th>Mã</th>
+                            <th>Máy bơm</th>
+                            <th>Loại bảo trì</th>
+                            <th>Ngày bắt đầu</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var history in maintenanceHistories)
+                        {
+                            <tr>
+                                <td><strong>@history.MaintenanceId</strong></td>
+                                <td>@(history.Pump?.PumpName ?? "N/A")</td>
+                                <td>@EnumHelper.GetDescription((MaintainType)history.MaintenanceType)</td>
+                                <td>@history.StartDate.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <span class="status-badge @(history.Status == (int)MaintainStatus.Scheduled ? "status-scheduled" : history.Status == (int)MaintainStatus.InProgress ? "status-inprogress" : "status-completed")">
+                                        @EnumHelper.GetDescription((MaintainStatus)history.Status)
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a class="btn btn-action btn-info-action"
+                                           href="/maintenancehistories/@history.MaintenanceId"
+                                           title="Xem chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a class="btn btn-action btn-warning-action"
+                                           href="/maintenancehistories/edit/@history.MaintenanceId"
+                                           title="Chỉnh sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        @if (history.Status == (int)MaintainStatus.Scheduled)
+                                        {
+                                            <button class="btn btn-action btn-success-action"
+                                                    @onclick="() => StartMaintenance(history.MaintenanceId)"
+                                                    title="Xử lý bảo trì">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                        }
+                                        @if (history.Status == (int)MaintainStatus.InProgress)
+                                        {
+                                            <button class="btn btn-action btn-primary-action"
+                                                    @onclick="() => CompleteMaintenance(history.MaintenanceId)"
+                                                    title="Hoàn thành">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        }
+                                        <button class="btn btn-action btn-danger-action"
+                                                @onclick="() => DeleteMaintenance(history.MaintenanceId)"
+                                                title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
 </div>
-
-@if (maintenanceHistories == null)
-{
-    <p>Đang tải...</p>
-}
-else if (!maintenanceHistories.Any())
-{
-    <p>Không tìm thấy lịch sử bảo trì nào.</p>
-}
-else
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Mã</th>
-                <th>Máy bơm</th>
-                <th>Loại bảo trì</th>
-                <th>Ngày bắt đầu</th>
-                <th>Trạng thái</th>
-                <th>Hành động</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var history in maintenanceHistories)
-            {
-                <tr>
-                    <td>@history.MaintenanceId</td>
-                    <td>@(history.Pump?.PumpName ?? "N/A")</td>
-                    <td>@EnumHelper.GetDescription((MaintainType)history.MaintenanceType)</td>
-                    <td>@history.StartDate.ToString("dd/MM/yyyy")</td>
-                    <td>@EnumHelper.GetDescription((MaintainStatus)history.Status)</td>
-                    <td>
-                        <a class="btn btn-info btn-sm" href="/maintenancehistories/@history.MaintenanceId">Chi tiết</a>
-                        <a class="btn btn-warning btn-sm" href="/maintenancehistories/edit/@history.MaintenanceId">Sửa</a>
-
-                        @if (history.Status == (int)MaintainStatus.Scheduled)
-                        {
-                            <button class="btn btn-success btn-sm" @onclick="() => StartMaintenance(history.MaintenanceId)">Xử lý bảo trì</button>
-                        }
-
-                        @if (history.Status == (int)MaintainStatus.InProgress)
-                        {
-                            <button class="btn btn-primary btn-sm" @onclick="() => CompleteMaintenance(history.MaintenanceId)">Hoàn thành</button>
-                        }
-
-                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteMaintenance(history.MaintenanceId)">Xóa</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
 
 @code {
     private List<MaintenanceHistory>? maintenanceHistories;
@@ -96,61 +165,90 @@ else
 
     private async Task SearchMaintenanceHistories()
     {
+        maintenanceHistories = null; // Show loading
+        StateHasChanged();
         maintenanceHistories = await MaintenanceService.GetMaintenanceHistoriesAsync(keyword, stationId);
+    }
+
+    private async Task OnKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchMaintenanceHistories();
+        }
     }
 
     private async Task DeleteMaintenance(int id)
     {
-        var confirm = await JS.InvokeAsync<bool>("confirm", "Bạn có chắc muốn xóa lịch sử bảo trì này?");
-        if (confirm)
+        if (await JS.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa lịch sử bảo trì này không?"))
         {
-            var response = await MaintenanceService.DeleteMaintenanceHistoryAsync(id, 1); // Assume ModifiedBy = 1
-            if (response.IsSuccessStatusCode)
+            try
             {
-                await JS.InvokeVoidAsync("alert", "Xóa lịch sử bảo trì thành công!");
-                maintenanceHistories = await MaintenanceService.GetMaintenanceHistoriesAsync(keyword, stationId);
+                var response = await MaintenanceService.DeleteMaintenanceHistoryAsync(id, 1);
+                if (response.IsSuccessStatusCode)
+                {
+                    maintenanceHistories = await MaintenanceService.GetMaintenanceHistoriesAsync(keyword, stationId);
+                    await JS.InvokeVoidAsync("alert", "Xóa lịch sử bảo trì thành công!");
+                }
+                else
+                {
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                var errorMessage = await response.Content.ReadAsStringAsync();
-                await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+                await JS.InvokeVoidAsync("alert", $"Lỗi: {ex.Message}");
             }
         }
     }
 
     private async Task CompleteMaintenance(int id)
     {
-        var confirm = await JS.InvokeAsync<bool>("confirm", "Bạn có muốn đánh dấu lịch sử bảo trì này là hoàn thành?");
-        if (confirm)
+        if (await JS.InvokeAsync<bool>("confirm", "Bạn có muốn đánh dấu lịch sử bảo trì này là hoàn thành không?"))
         {
-            var response = await MaintenanceService.CompleteMaintenanceHistoryAsync(id, 1); // Assume ModifiedBy = 1
-            if (response.IsSuccessStatusCode)
+            try
             {
-                await JS.InvokeVoidAsync("alert", "Cập nhật trạng thái bảo trì thành công!");
-                maintenanceHistories = await MaintenanceService.GetMaintenanceHistoriesAsync(keyword, stationId);
+                var response = await MaintenanceService.CompleteMaintenanceHistoryAsync(id, 1);
+                if (response.IsSuccessStatusCode)
+                {
+                    maintenanceHistories = await MaintenanceService.GetMaintenanceHistoriesAsync(keyword, stationId);
+                    await JS.InvokeVoidAsync("alert", "Cập nhật trạng thái bảo trì thành công!");
+                }
+                else
+                {
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                var errorMessage = await response.Content.ReadAsStringAsync();
-                await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+                await JS.InvokeVoidAsync("alert", $"Lỗi: {ex.Message}");
             }
         }
     }
+
     private async Task StartMaintenance(int id)
     {
-        var confirm = await JS.InvokeAsync<bool>("confirm", "Bạn có muốn bắt đầu bảo trì ?");
-        if (confirm)
+        if (await JS.InvokeAsync<bool>("confirm", "Bạn có muốn bắt đầu bảo trì không?"))
         {
-            var response = await MaintenanceService.ActiveMaintenanceHistoryAsync(id, 1); // Assume ModifiedBy = 1
-            if (response.IsSuccessStatusCode)
+            try
             {
-                await JS.InvokeVoidAsync("alert", "Cập nhật trạng thái bảo trì thành công!");
-                maintenanceHistories = await MaintenanceService.GetMaintenanceHistoriesAsync(keyword, stationId);
+                var response = await MaintenanceService.ActiveMaintenanceHistoryAsync(id, 1);
+                if (response.IsSuccessStatusCode)
+                {
+                    maintenanceHistories = await MaintenanceService.GetMaintenanceHistoriesAsync(keyword, stationId);
+                    await JS.InvokeVoidAsync("alert", "Cập nhật trạng thái bảo trì thành công!");
+                }
+                else
+                {
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                var errorMessage = await response.Content.ReadAsStringAsync();
-                await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+                await JS.InvokeVoidAsync("alert", $"Lỗi: {ex.Message}");
             }
         }
     }

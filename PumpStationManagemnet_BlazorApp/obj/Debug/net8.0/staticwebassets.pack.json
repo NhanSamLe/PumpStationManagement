@@ -1,6 +1,10 @@
 {
   "Files": [
     {
+      "Id": "C:\\Users\\Admin\\.nuget\\packages\\chartjs.blazor.fork\\2.0.2\\contentFiles\\any\\netstandard2.1\\wwwroot\\ChartJsBlazorInterop.js",
+      "PackagePath": "staticwebassets\\ChartJsBlazorInterop.js"
+    },
+    {
       "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\bin\\Debug\\net8.0\\wwwroot\\_framework\\blazor.webassembly.js",
       "PackagePath": "staticwebassets\\_framework\\blazor.webassembly.js"
     },
@@ -13,8 +17,16 @@
       "PackagePath": "staticwebassets\\PumpStationManagemnet_BlazorApp.styles.css"
     },
     {
+      "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\alert\\alerts.css",
+      "PackagePath": "staticwebassets\\css\\alert\\alerts.css"
+    },
+    {
       "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\app.css",
       "PackagePath": "staticwebassets\\css\\app.css"
+    },
+    {
+      "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\auth.css",
+      "PackagePath": "staticwebassets\\css\\auth.css"
     },
     {
       "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\bootstrap\\bootstrap.min.css",
@@ -23,6 +35,42 @@
     {
       "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\bootstrap\\bootstrap.min.css.map",
       "PackagePath": "staticwebassets\\css\\bootstrap\\bootstrap.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\maintenance\\maintenancehistories.css",
+      "PackagePath": "staticwebassets\\css\\maintenance\\maintenancehistories.css"
+    },
+    {
+      "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\operating\\operatings.css",
+      "PackagePath": "staticwebassets\\css\\operating\\operatings.css"
+    },
+    {
+      "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\pump\\pumps.css",
+      "PackagePath": "staticwebassets\\css\\pump\\pumps.css"
+    },
+    {
+      "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\pumpstation\\pumpstation.css",
+      "PackagePath": "staticwebassets\\css\\pumpstation\\pumpstation.css"
+    },
+    {
+      "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\sidebar.css",
+      "PackagePath": "staticwebassets\\css\\sidebar.css"
+    },
+    {
+      "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\user\\create-user.css",
+      "PackagePath": "staticwebassets\\css\\user\\create-user.css"
+    },
+    {
+      "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\user\\edit-user.css",
+      "PackagePath": "staticwebassets\\css\\user\\edit-user.css"
+    },
+    {
+      "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\user\\user-detail.css",
+      "PackagePath": "staticwebassets\\css\\user\\user-detail.css"
+    },
+    {
+      "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\user\\user.css",
+      "PackagePath": "staticwebassets\\css\\user\\user.css"
     },
     {
       "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\favicon.png",
@@ -35,6 +83,18 @@
     {
       "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\index.html",
       "PackagePath": "staticwebassets\\index.html"
+    },
+    {
+      "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\js\\auth.js",
+      "PackagePath": "staticwebassets\\js\\auth.js"
+    },
+    {
+      "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\js\\excel.js",
+      "PackagePath": "staticwebassets\\js\\excel.js"
+    },
+    {
+      "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\js\\site.js",
+      "PackagePath": "staticwebassets\\js\\site.js"
     },
     {
       "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\sample-data\\weather.json",

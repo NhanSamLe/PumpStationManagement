@@ -3,51 +3,86 @@
 @using PumpStationManagemnet_BlazorApp.Models
 @using PumpStationManagemnet_BlazorApp.Enums
 @using PumpStationManagemnet_BlazorApp.Services
+@using System.Text.Json
+@inject AuthService AuthService
 @inject PumpStationService PumpStationService
 @inject IJSRuntime JS
 @inject NavigationManager NavigationManager
 
-<h3 class="text-center mb-3">Chỉnh sửa trạm bơm</h3>
+<link href="css/pumpstation/pumpstation.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
-@if (pumpStation == null)
-{
-    <p>Đang tải...</p>
-}
-else
-{
-    <EditForm Model="@stationDto" OnValidSubmit="HandleValidSubmit">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+<div class="pumpstation-container">
+    <h1 class="pumpstation-title">
+        <i class="fas fa-edit"></i>
+        Chỉnh sửa trạm bơm
+    </h1>
 
-        <div class="mb-3">
-            <label class="form-label">Tên trạm bơm</label>
-            <InputText class="form-control" @bind-Value="stationDto.StationName" />
+    @if (pumpStation == null)
+    {
+        <div class="form-card">
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Đang tải dữ liệu...</div>
+            </div>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Vị trí</label>
-            <InputText class="form-control" @bind-Value="stationDto.Location" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Mô tả</label>
-            <InputTextArea class="form-control" @bind-Value="stationDto.Description" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Trạng thái</label>
-            <InputSelect class="form-control" @bind-Value="stationDto.Status">
-                @foreach (var option in statusOptions)
+    }
+    else
+    {
+        <div class="form-card">
+            <EditForm Model="@stationDto" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                @if (!string.IsNullOrEmpty(ErrorMessage))
                 {
-                    <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
+                    <div class="alert alert-danger" role="alert">
+                        @ErrorMessage
+                    </div>
                 }
-            </InputSelect>
+
+                <div class="form-group">
+                    <label class="form-label">Tên trạm bơm</label>
+                    <InputText class="form-control" @bind-Value="stationDto.StationName" placeholder="Nhập tên trạm bơm" />
+                    <ValidationMessage For="@(() => stationDto.StationName)" class="validation-message" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Vị trí</label>
+                    <InputText class="form-control" @bind-Value="stationDto.Location" placeholder="Nhập vị trí" />
+                    <ValidationMessage For="@(() => stationDto.Location)" class="validation-message" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Mô tả</label>
+                    <InputTextArea class="form-control" @bind-Value="stationDto.Description" placeholder="Nhập mô tả" />
+                    <ValidationMessage For="@(() => stationDto.Description)" class="validation-message" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Trạng thái</label>
+                    <InputSelect class="form-select" @bind-Value="stationDto.Status">
+                        @foreach (var option in statusOptions)
+                        {
+                            <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => stationDto.Status)" class="validation-message" />
+                </div>
+
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-simple btn-primary-simple">
+                        <i class="fas fa-save me-2"></i>
+                        Lưu
+                    </button>
+                    <a class="btn btn-simple btn-warning-simple" href="/pumpstations">
+                        <i class="fas fa-times me-2"></i>
+                        Hủy
+                    </a>
+                </div>
+            </EditForm>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Người chỉnh sửa (ID)</label>
-            <InputNumber class="form-control" @bind-Value="stationDto.ModifiedBy" />
-        </div>
-        <button type="submit" class="btn btn-primary">Lưu</button>
-        <a class="btn btn-secondary ms-2" href="/pumpstations">Hủy</a>
-    </EditForm>
-}
+    }
+</div>
 
 @code {
     [Parameter]
@@ -56,6 +91,7 @@ else
     private PumpStation? pumpStation;
     private PumpStationDTO stationDto = new();
     private List<KeyValuePair<Enum, string>> statusOptions = new();
+    private string? ErrorMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -71,23 +107,33 @@ else
                     ModifiedBy = pumpStation.ModifiedBy
                 };
             statusOptions = EnumHelper.GetEnumListWithDescriptions<StationStatus>();
-
         }
     }
 
     private async Task HandleValidSubmit()
     {
-
-        var response = await PumpStationService.UpdatePumpStationAsync(Id, stationDto);
-        if (response.IsSuccessStatusCode)
+        ErrorMessage = null;
+        try
         {
-            await JS.InvokeVoidAsync("alert", "Cập nhật trạm bơm thành công!");
-            NavigationManager.NavigateTo("/pumpstations");
+            stationDto.ModifiedBy = AuthService.CurrentUserId;
+            var response = await PumpStationService.UpdatePumpStationAsync(Id, stationDto);
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Cập nhật trạm bơm thành công!");
+                NavigationManager.NavigateTo("/pumpstations");
+            }
+            else
+            {
+                var errorMessageJson = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(errorMessageJson);
+                ErrorMessage = doc.RootElement.GetProperty("message").GetString();
+                await JS.InvokeVoidAsync("alert", $"Lỗi: {ErrorMessage}");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            var errorMessage = await response.Content.ReadAsStringAsync();
-            await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+            ErrorMessage = $"Lỗi: {ex.Message}";
+            await JS.InvokeVoidAsync("alert", ErrorMessage);
         }
     }
 }

@@ -1,11 +1,58 @@
 {
   "Version": 1,
-  "Hash": "Se2CywlQr4EDxV0m0n1lJIaOkS6nTeLOmIvbGezLtNA=",
+  "Hash": "SefMdwNBFfTxzfr9Z4S/cvJ/XxaJg6kdFRgHu4uzvCA=",
   "Source": "PumpStationManagement_API",
   "BasePath": "_content/PumpStationManagement_API",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
-  "DiscoveryPatterns": [],
-  "Assets": []
+  "DiscoveryPatterns": [
+    {
+      "Name": "PumpStationManagement_API\\wwwroot",
+      "Source": "PumpStationManagement_API",
+      "ContentRoot": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagement_API\\wwwroot\\",
+      "BasePath": "_content/PumpStationManagement_API",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "C:\\Users\\Admin\\.nuget\\packages\\chartjs.blazor.fork\\2.0.2\\contentFiles\\any\\netstandard2.1\\wwwroot\\ChartJsBlazorInterop.js",
+      "SourceId": "PumpStationManagement_API",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagement_API\\wwwroot\\",
+      "BasePath": "_content/PumpStationManagement_API",
+      "RelativePath": "ChartJsBlazorInterop.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "C:\\Users\\Admin\\.nuget\\packages\\chartjs.blazor.fork\\2.0.2\\contentFiles\\any\\netstandard2.1\\wwwroot\\ChartJsBlazorInterop.js"
+    },
+    {
+      "Identity": "C:\\Users\\Admin\\.nuget\\packages\\chartjs.blazor.fork\\2.0.2\\staticwebassets\\ChartJsBlazorInterop.js",
+      "SourceId": "ChartJs.Blazor.Fork",
+      "SourceType": "Package",
+      "ContentRoot": "C:\\Users\\Admin\\.nuget\\packages\\chartjs.blazor.fork\\2.0.2\\staticwebassets\\",
+      "BasePath": "_content/ChartJs.Blazor.Fork",
+      "RelativePath": "ChartJsBlazorInterop.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "C:\\Users\\Admin\\.nuget\\packages\\chartjs.blazor.fork\\2.0.2\\staticwebassets\\ChartJsBlazorInterop.js"
+    }
+  ]
 }

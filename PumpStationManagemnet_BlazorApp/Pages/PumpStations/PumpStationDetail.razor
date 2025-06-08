@@ -6,28 +6,70 @@
 @inject PumpStationService PumpStationService
 @inject IJSRuntime JS
 @inject NavigationManager NavigationManager
-<h3>Chi Tiết Trạm Bơm</h3>
 
-@if (pumpStation == null)
-{
-    <p>Đang tải...</p>
-}
-else
-{
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">@pumpStation.StationName</h5>
-            <p class="card-text"><strong>Mã:</strong> @pumpStation.StationId</p>
-            <p class="card-text"><strong>Vị trí:</strong> @pumpStation.Location</p>
-            <p class="card-text"><strong>Mô tả:</strong> @pumpStation.Description</p>
-            <p class="card-text"><strong>Trạng thái:</strong> @EnumHelper.GetDescription((StationStatus)pumpStation.Status)</p>
-            <p class="card-text"><strong>Ngày tạo:</strong> @pumpStation.CreatedOn?.ToString("dd/MM/yyyy")</p>
-            <p class="card-text"><strong>Ngày chỉnh sửa:</strong> @pumpStation.ModifiedOn?.ToString("dd/MM/yyyy")</p>
+<link href="css/pumpstation/pumpstation.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+<div class="pumpstation-container">
+    <h1 class="pumpstation-title">
+        <i class="fas fa-pump-soap"></i>
+        Chi tiết trạm bơm
+    </h1>
+
+    @if (pumpStation == null)
+    {
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Đang tải dữ liệu...</div>
         </div>
-    </div>
-    <a class="btn btn-primary mt-3" href="/pumpstations">Quay lại</a>
-    <a class="btn btn-warning mt-3 ms-2" href="/pumpstations/edit/@pumpStation.StationId">Chỉnh sửa</a>
-}
+    }
+    else
+    {
+        <div class="detail-container">
+            <div class="card-header">
+                <h2 class="card-title">@pumpStation.StationName</h2>
+            </div>
+            <div class="card-body">
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-id-badge me-2"></i>Mã:</span>
+                    <span class="info-value">@pumpStation.StationId</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-map-marker-alt me-2"></i>Vị trí:</span>
+                    <span class="info-value">@pumpStation.Location</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-info-circle me-2"></i>Mô tả:</span>
+                    <span class="info-value">@pumpStation.Description</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-toggle-on me-2"></i>Trạng thái:</span>
+                    <span class="status-badge @(pumpStation.Status == (int)StationStatus.Active ? "status-active" : "status-inactive")">
+                        @EnumHelper.GetDescription((StationStatus)pumpStation.Status)
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-calendar-plus me-2"></i>Ngày tạo:</span>
+                    <span class="info-value">@pumpStation.CreatedOn?.ToString("dd/MM/yyyy")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-calendar-edit me-2"></i>Ngày chỉnh sửa:</span>
+                    <span class="info-value">@pumpStation.ModifiedOn?.ToString("dd/MM/yyyy")</span>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a class="btn btn-simple btn-primary-simple me-2" href="/pumpstations">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Quay lại
+                </a>
+                <a class="btn btn-simple btn-warning-simple" href="/pumpstations/edit/@pumpStation.StationId">
+                    <i class="fas fa-edit me-2"></i>
+                    Chỉnh sửa
+                </a>
+            </div>
+        </div>
+    }
+</div>
 
 @code {
     [Parameter]

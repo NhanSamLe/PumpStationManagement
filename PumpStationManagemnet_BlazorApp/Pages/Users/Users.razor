@@ -6,56 +6,137 @@
 @inject PumpStationManagemnet_BlazorApp.Services.UserService UserService
 @inject IJSRuntime JS
 @inject NavigationManager NavigationManager
-<h1 class="text-center mb-3"> List of Users </h1>
-<div class="mb-3">
-    <input type="text" class="form-control" @bind="keyword" placeholder="Tìm kiếm theo tên, email, hoặc số điện thoại..." />
-    <button class="btn btn-primary mt-2" @onclick="SearchUsers">Tìm kiếm</button>
-    <a class="btn btn-success mt-2 ms-2" href="/users/create">Tạo người dùng mới</a>
+
+<link href="css/user/user.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+<div class="users-container">
+    <h1 class="users-title">
+        <i class="fas fa-users"></i>
+        Quản lý người dùng
+    </h1>
+
+    <div class="search-section">
+        <div class="row align-items-end">
+            <div class="col-md-8">
+                <label class="search-label">
+                    <i class="fas fa-search me-2"></i>
+                    Tìm kiếm người dùng
+                </label>
+                <input type="text"
+                       class="form-control search-input"
+                       @bind="keyword"
+                       @onkeypress="OnKeyPress"
+                       placeholder="Nhập tên, email hoặc số điện thoại..." />
+            </div>
+            <div class="col-md-4 mt-3 mt-md-0">
+                <button class="btn btn-simple btn-primary-simple me-2" @onclick="SearchUsers">
+                    <i class="fas fa-search me-2"></i>
+                    Tìm kiếm
+                </button>
+                <a class="btn btn-simple btn-success-simple" href="/users/create">
+                    <i class="fas fa-plus me-2"></i>
+                    Thêm mới
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @if (users == null)
+    {
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Đang tải dữ liệu...</div>
+        </div>
+    }
+    else if (!users.Any())
+    {
+        <div class="no-data-container">
+            <i class="fas fa-users-slash no-data-icon"></i>
+            <div class="no-data-text">
+                @if (string.IsNullOrEmpty(keyword))
+                {
+                    <text>Chưa có người dùng nào trong hệ thống</text>
+                }
+                else
+                {
+                    <text>Không tìm thấy người dùng phù hợp với từ khóa "@keyword"</text>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-simple">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Người dùng</th>
+                            <th>Email</th>
+                            <th>Số điện thoại</th>
+                            <th>Vai trò</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in users)
+                        {
+                            <tr>
+                                <td><strong>@user.UserId</strong></td>
+                                <td>
+                                    <div class="user-info">
+                                        <div class="user-avatar">
+                                            @GetUserInitials(user.FullName ?? user.Username)
+                                        </div>
+                                        <div class="user-details">
+                                            <div class="username">@user.Username</div>
+                                            <div class="fullname">@user.FullName</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@user.Email</td>
+                                <td>@user.PhoneNumber</td>
+                                <td>
+                                    <span class="role-badge">
+                                        @EnumHelper.GetDescription((UserRole)user.Role)
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-badge @(user.IsActive == true ? "status-active" : "status-inactive")">
+                                        @(user.IsActive == true ? "Hoạt động" : "Tạm khóa")
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a class="btn btn-action btn-info-action"
+                                           href="/users/@user.UserId"
+                                           title="Xem chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a class="btn btn-action btn-warning-action"
+                                           href="/users/edit/@user.UserId"
+                                           title="Chỉnh sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn btn-action btn-danger-action"
+                                                @onclick="() => DeleteUser(user.UserId)"
+                                                title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
 </div>
-@if (users == null)
-{
-<p>Đang tải...</p>
-}
-else if (!users.Any())
-{
-<p>Không tìm thấy người dùng nào.</p>
-}
-else
-{
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Tên đăng nhập</th>
-            <th>Họ tên</th>
-            <th>Email</th>
-            <th>Số điện thoại</th>
-            <th>Vai trò</th>
-            <th>Trạng thái</th>
-            <th>Hành động</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var user in users)
-        {
-            <tr>
-                <td>@user.UserId</td>
-                <td>@user.Username</td>
-                <td>@user.FullName</td>
-                <td>@user.Email</td>
-                <td>@user.PhoneNumber</td>
-                <td>@EnumHelper.GetDescription((UserRole)user.Role)</td>
-                <td>@(user.IsActive == true ? "Hoạt động" : "Không hoạt động")</td>
-                <td>
-                    <a class="btn btn-info btn-sm" href="/users/@user.UserId">Chi tiết</a>
-                    <a class="btn btn-warning btn-sm" href="/users/edit/@user.UserId">Sửa</a>
-                    <button class="btn btn-danger btn-sm" @onclick="() => DeleteUser(user.UserId)">Xóa</button>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-}
+
 @code {
     private List<User>? users;
     private string keyword = string.Empty;
@@ -67,22 +148,58 @@ else
 
     private async Task SearchUsers()
     {
+        users = null; // Show loading
+        StateHasChanged();
         users = await UserService.GetUsersAsync(keyword);
+    }
+
+    private async Task OnKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchUsers();
+        }
     }
 
     private async Task DeleteUser(int id)
     {
         if (await JS.InvokeAsync<bool>("confirm", "Bạn có chắc muốn xóa người dùng này?"))
         {
-            var response = await UserService.DeleteUserAsync(id, 1); // Giả sử ModifiedBy = 1
-            if (response.IsSuccessStatusCode)
+            try
             {
-                users = await UserService.GetUsersAsync(keyword);
+                var response = await UserService.DeleteUserAsync(id, 1);
+                if (response.IsSuccessStatusCode)
+                {
+                    users = await UserService.GetUsersAsync(keyword);
+                    await JS.InvokeVoidAsync("alert", "Xóa thành công!");
+                }
+                else
+                {
+                    await JS.InvokeVoidAsync("alert", "Có lỗi xảy ra!");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // Xử lý lỗi (hiển thị thông báo)
+                await JS.InvokeVoidAsync("alert", $"Lỗi: {ex.Message}");
             }
         }
+    }
+
+    private string GetUserInitials(string? name)
+    {
+        if (string.IsNullOrEmpty(name))
+            return "??";
+
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+        {
+            return $"{parts[0][0]}{parts[^1][0]}".ToUpper();
+        }
+        else if (parts.Length == 1)
+        {
+            return parts[0].Length >= 2 ? parts[0].Substring(0, 2).ToUpper() : parts[0].ToUpper();
+        }
+
+        return "??";
     }
 }

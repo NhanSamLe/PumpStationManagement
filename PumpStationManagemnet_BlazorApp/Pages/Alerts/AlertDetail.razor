@@ -5,32 +5,84 @@
 @using PumpStationManagemnet_BlazorApp.Enums
 @inject AlertService AlertService
 @inject PumpStationService PumpStationService
+@inject IJSRuntime JS
 @inject NavigationManager NavigationManager
-<h3>AlertDetail</h3>
 
-@if (alert == null)
-{
-    <p>Đang tải...</p>
-}
-else
-{
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Cảnh báo : @alert.AlertId</h5>
-            <p class="card-text"><strong>Máy bơm:</strong> @(alert.Pump?.PumpName ?? "N/A")</p>
-            <p class="card-text"><strong>Trạm bơm:</strong> @(pumpStations.FirstOrDefault(s => s.StationId == alert.Pump?.StationId)?.StationName ?? "N/A")</p>
-            <p class="card-text"><strong>Loại cảnh báo:</strong> @EnumHelper.GetDescription((AlertType)alert.AlertType)</p>
-            <p class="card-text"><strong>Nội Dung:</strong> @alert.AlertMessage</p>
-            <p class="card-text"><strong>Trạng thái:</strong>@EnumHelper.GetDescription((AlertStatus)alert.Status)</p>
-            <p class="card-text"><strong>Người tạo:</strong> @(alert.CreatedByNavigation?.Username ?? "N/A")</p>
-            <p class="card-text"><strong>Ngày tạo:</strong> @alert.CreatedOn?.ToString("dd/MM/yyyy HH:mm")</p>
-            <p class="card-text"><strong>Người xử lý:</strong> @(alert.ModifiedByNavigation?.Username ?? "N/A")</p>
-            <p class="card-text"><strong>Ngày xử lý:</strong> @alert.ModifiedOn?.ToString("dd/MM/yyyy HH:mm")</p>
+<link href="css/alert/alerts.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+<div class="alerts-container">
+    <h1 class="alerts-title">
+        <i class="fas fa-exclamation-triangle"></i>
+        Chi tiết cảnh báo
+    </h1>
+
+    @if (alert == null)
+    {
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Đang tải dữ liệu...</div>
         </div>
-    </div>
-    <a class="btn btn-primary mt-3" href="/alerts">Quay lại</a>
-    <a class="btn btn-warning mt-3 ms-2" href="/alerts/edit/@alert.AlertId">Chỉnh sửa</a>
-}
+    }
+    else
+    {
+        <div class="detail-container">
+            <div class="card-header">
+                <h2 class="card-title">Cảnh báo: Mã @alert.AlertId</h2>
+            </div>
+            <div class="card-body">
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-faucet me-2"></i>Máy bơm:</span>
+                    <span class="info-value">@(alert.Pump?.PumpName ?? "N/A")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-pump-soap me-2"></i>Trạm bơm:</span>
+                    <span class="info-value">@(pumpStations.FirstOrDefault(s => s.StationId == alert.Pump?.StationId)?.StationName ?? "N/A")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-bell me-2"></i>Loại cảnh báo:</span>
+                    <span class="info-value">@EnumHelper.GetDescription((AlertType)alert.AlertType)</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-file-alt me-2"></i>Nội dung:</span>
+                    <span class="info-value">@alert.AlertMessage</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-info-circle me-2"></i>Trạng thái:</span>
+                    <span class="status-badge @(alert.Status == (int)AlertStatus.Active ? "status-active" : alert.Status == (int)AlertStatus.Resolved ? "status-resolved" : "status-ignored")">
+                        @EnumHelper.GetDescription((AlertStatus)alert.Status)
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-user me-2"></i>Người tạo:</span>
+                    <span class="info-value">@(alert.CreatedByNavigation?.Username ?? "N/A")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-calendar-plus me-2"></i>Ngày tạo:</span>
+                    <span class="info-value">@(alert.CreatedOn?.ToString("dd/MM/yyyy HH:mm:ss") ?? "N/A")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-user-check me-2"></i>Người xử lý:</span>
+                    <span class="info-value">@(alert.ModifiedByNavigation?.Username ?? "N/A")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-calendar-check me-2"></i>Ngày xử lý:</span>
+                    <span class="info-value">@(alert.ModifiedOn?.ToString("dd/MM/yyyy HH:mm:ss") ?? "N/A")</span>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a class="btn btn-simple btn-primary-simple" href="/alerts">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Quay lại
+                </a>
+                <a class="btn btn-simple btn-warning-simple ms-2" href="/alerts/edit/@alert.AlertId">
+                    <i class="fas fa-edit me-2"></i>
+                    Chỉnh sửa
+                </a>
+            </div>
+        </div>
+    }
+</div>
 
 @code {
     [Parameter]
@@ -41,7 +93,14 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        pumpStations = await PumpStationService.GetPumpStationsAsync();
-        alert = await AlertService.GetAlertAsync(Id);
+        try
+        {
+            pumpStations = await PumpStationService.GetPumpStationsAsync();
+            alert = await AlertService.GetAlertAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Lỗi khi tải dữ liệu: {ex.Message}");
+        }
     }
 }

@@ -1,4 +1,9 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using PumpStationManagemnet_BlazorApp.Enums
+@using PumpStationManagemnet_BlazorApp.Services
+@inject AuthService AuthService
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">PumpStationManagemnet</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
@@ -11,43 +16,52 @@
     <nav class="flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                <span class="fas fa-home me-2" aria-hidden="true"></span> Trang chủ
             </NavLink>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="users">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Users
-            </NavLink>
-        </div>
+        @if (AuthService.IsAuthenticated && AuthService.HasRole(UserRole.Admin))
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="users">
+                    <span class="fas fa-user me-2 " aria-hidden="true"></span> Người dùng
+                </NavLink>
+            </div>
+        }
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="pumpstations">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> PumpStations
+                <span class="fas fa-pump-soap me-2" aria-hidden="true"></span> Trạm bơm
             </NavLink>
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="pumps">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Pumps
+                <span class="fas fa-faucet me-2 " aria-hidden="true"></span> Máy bơm
             </NavLink>
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="operatings">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Operatings
+                <span class="fas fa-tachometer-alt me-2" aria-hidden="true"></span> Vận hành
             </NavLink>
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="maintenancehistories">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Maintenance Histories
+                <span class="fas fa-tools me-2" aria-hidden="true"></span> Lịch sử bảo trì
             </NavLink>
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="/alerts">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Alerts
+                <span class="fas fa-exclamation-triangle me-2 " aria-hidden="true"></span> Cảnh báo
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/statistics">
+                <span class="fas fa-chart-pie me-2 " aria-hidden="true"></span> Thống kê
             </NavLink>
         </div>
     </nav>
 </div>
 
 @code {
+   
     private bool collapseNavMenu = true;
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;

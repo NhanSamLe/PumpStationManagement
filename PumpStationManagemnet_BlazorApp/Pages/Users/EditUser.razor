@@ -3,56 +3,96 @@
 @using PumpStationManagemnet_BlazorApp.Models
 @using PumpStationManagemnet_BlazorApp.Services
 @using PumpStationManagemnet_BlazorApp.Enums
+@using System.Text.Json
 @inject UserService UserService
+@inject AuthService AuthService
 @inject IJSRuntime JS
 @inject NavigationManager NavigationManager
 
-<h3>Chỉnh sửa người dùng</h3>
+<link href="css/user/edit-user.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
-@if (user == null)
-{
-    <p>Đang tải...</p>
-}
-else
-{
-    <EditForm Model="@userDto" OnValidSubmit="HandleValidSubmit">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+<div class="edit-user-container">
+    <h1 class="edit-user-title">
+        <i class="fas fa-user-edit"></i>
+        Chỉnh sửa người dùng
+    </h1>
 
-        <div class="mb-3">
-            <label class="form-label">Tên đăng nhập</label>
-            <InputText class="form-control" @bind-Value="userDto.Username" />
+    @if (user == null)
+    {
+        <div class="form-card">
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Đang tải dữ liệu...</div>
+            </div>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Họ tên</label>
-            <InputText class="form-control" @bind-Value="userDto.FullName" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Email</label>
-            <InputText class="form-control" @bind-Value="userDto.Email" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Số điện thoại</label>
-            <InputText class="form-control" @bind-Value="userDto.PhoneNumber" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Vai trò</label>
-            <InputSelect class="form-control" @bind-Value="userDto.Role">
-                @foreach (var option in userRole)
+    }
+    else
+    {
+        <div class="form-card">
+            <EditForm Model="@userDto" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                @if (!string.IsNullOrEmpty(ErrorMessage))
                 {
-                    <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
+                    <div class="alert alert-danger" role="alert">
+                        @ErrorMessage
+                    </div>
                 }
-            </InputSelect>
-        </div>
-        <div class="mb-3 form-check">
-            <InputCheckbox class="form-check-input" @bind-Value="isActiveTemp" />
-            <label class="form-check-label">Hoạt động</label>
-        </div>
 
-        <button type="submit" class="btn btn-primary">Lưu</button>
-        <a class="btn btn-secondary ms-2" href="/users">Hủy</a>
-    </EditForm>
-}
+                <div class="form-group">
+                    <label class="form-label">Tên đăng nhập</label>
+                    <InputText class="form-control" @bind-Value="userDto.Username" placeholder="Nhập tên đăng nhập" />
+                    <ValidationMessage For="@(() => userDto.Username)" class="validation-message" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Họ tên</label>
+                    <InputText class="form-control" @bind-Value="userDto.FullName" placeholder="Nhập họ tên" />
+                    <ValidationMessage For="@(() => userDto.FullName)" class="validation-message" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <InputText class="form-control" @bind-Value="userDto.Email" placeholder="Nhập email" />
+                    <ValidationMessage For="@(() => userDto.Email)" class="validation-message" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Số điện thoại</label>
+                    <InputText class="form-control" @bind-Value="userDto.PhoneNumber" placeholder="Nhập số điện thoại" />
+                    <ValidationMessage For="@(() => userDto.PhoneNumber)" class="validation-message" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Vai trò</label>
+                    <InputSelect class="form-select" @bind-Value="userDto.Role">
+                        @foreach (var option in userRole)
+                        {
+                            <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => userDto.Role)" class="validation-message" />
+                </div>
+
+                <div class="form-check">
+                    <InputCheckbox class="form-check-input" @bind-Value="isActiveTemp" />
+                    <label class="form-check-label">Hoạt động</label>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Lưu
+                    </button>
+                    <a class="btn btn-warning" href="/users">
+                        <i class="fas fa-times"></i>
+                        Hủy
+                    </a>
+                </div>
+            </EditForm>
+        </div>
+    }
+</div>
 
 @code {
     [Parameter]
@@ -60,8 +100,10 @@ else
 
     private User? user;
     private UserDTO userDto = new();
-    private bool isActiveTemp; // Biến tạm thời để bind với InputCheckbox
+    private bool isActiveTemp;
     private List<KeyValuePair<Enum, string>> userRole = EnumHelper.GetEnumListWithDescriptions<UserRole>();
+    private string? ErrorMessage;
+
     protected override async Task OnInitializedAsync()
     {
         user = await UserService.GetUserAsync(Id);
@@ -78,26 +120,36 @@ else
                     IsActive = user.IsActive,
                     ModifiedBy = user.ModifiedBy
                 };
-            // Đồng bộ giá trị isActiveTemp với userDto.IsActive
-            isActiveTemp = userDto.IsActive ?? false; // Mặc định là false nếu null
+            isActiveTemp = userDto.IsActive ?? false;
         }
     }
 
     private async Task HandleValidSubmit()
     {
-        // Đồng bộ isActiveTemp với userDto.IsActive trước khi gửi API
+        ErrorMessage = null;
         userDto.IsActive = isActiveTemp;
+        userDto.ModifiedBy = AuthService.CurrentUserId;
 
-        var response = await UserService.UpdateUserAsync(Id, userDto);
-        if (response.IsSuccessStatusCode)
+        try
         {
-            await JS.InvokeVoidAsync("alert", "Cập nhật người dùng thành công!");
-            NavigationManager.NavigateTo("/users");
+            var response = await UserService.UpdateUserAsync(Id, userDto);
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Cập nhật người dùng thành công!");
+                NavigationManager.NavigateTo("/users");
+            }
+            else
+            {
+                var errorMessageJson = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(errorMessageJson);
+                ErrorMessage = doc.RootElement.GetProperty("message").GetString();
+                await JS.InvokeVoidAsync("alert", $"Lỗi: {ErrorMessage}");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            var errorMessage = await response.Content.ReadAsStringAsync();
-            await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+            ErrorMessage = $"Lỗi: {ex.Message}";
+            await JS.InvokeVoidAsync("alert", ErrorMessage);
         }
     }
 }

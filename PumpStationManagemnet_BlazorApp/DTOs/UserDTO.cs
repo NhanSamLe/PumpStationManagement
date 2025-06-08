@@ -1,14 +1,34 @@
-﻿namespace PumpStationManagemnet_BlazorApp.DTOs
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace PumpStationManagemnet_BlazorApp.DTOs
 {
     public class UserDTO
     {
-        public string Username { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-        public string FullName { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
+        [Required]
+        [MaxLength(50)]
+        public string Username { get; set; } = null!;
+
+        [Required]
+        [MaxLength(100)]
+        public string Password { get; set; } = null!;
+
+        [Required]
+        [MaxLength(100)]
+        public string FullName { get; set; } = null!;
+
+        [Required]
+        [MaxLength(100)]
+        [EmailAddress]
+        public string Email { get; set; } = null!;
+
+        [MaxLength(20)]
         public string? PhoneNumber { get; set; }
+
+        [Required]
         public int Role { get; set; }
+
         public bool? IsActive { get; set; } = true;
+
         public int? CreatedBy { get; set; }
         public int? ModifiedBy { get; set; }
     }

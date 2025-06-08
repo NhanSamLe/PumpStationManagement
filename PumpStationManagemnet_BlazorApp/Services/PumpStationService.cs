@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using Microsoft.AspNetCore.Components;
 using PumpStationManagemnet_BlazorApp.DTOs;
 using PumpStationManagemnet_BlazorApp.Models;
 namespace PumpStationManagemnet_BlazorApp.Services
@@ -36,6 +37,31 @@ namespace PumpStationManagemnet_BlazorApp.Services
         public async Task<HttpResponseMessage> DeletePumpStationAsync(int id, int modifiedBy)
         {
             return await _httpClient.DeleteAsync($"api/PumpStations/{id}?modifiedBy={modifiedBy}");
+        }
+        public string GetExportExcelUrl(string? keyword = null)
+        {
+            var query = string.IsNullOrWhiteSpace(keyword) ? "" : $"?keyword={Uri.EscapeDataString(keyword)}";
+            return $"api/PumpStations/export-excel{query}";
+        }
+
+        public async Task<byte[]> ExportToExcel(string? keyword = null)
+        {
+            try
+            {
+                var relativeUrl = GetExportExcelUrl(keyword);
+                var response = await _httpClient.GetAsync(relativeUrl);
+                response.EnsureSuccessStatusCode();
+
+                var stream = await response.Content.ReadAsStreamAsync();
+                using var memoryStream = new MemoryStream();
+                await stream.CopyToAsync(memoryStream);
+                return memoryStream.ToArray();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi khi gọi API xuất Excel: {ex.Message}");
+                throw; // Ném lại ngoại lệ để xử lý ở phía gọi
+            }
         }
     }
 }

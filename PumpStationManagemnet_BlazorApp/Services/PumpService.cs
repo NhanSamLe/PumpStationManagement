@@ -51,6 +51,60 @@ namespace PumpStationManagemnet_BlazorApp.Services
             {
                 return await _httpClient.DeleteAsync($"api/Pumps/{id}?modifiedBy={modifiedBy}");
             }
-
+        public async Task<HttpResponseMessage> SetAllPumpsActiveAsync(int modifiedBy)
+        {
+            return await _httpClient.PutAsync($"api/Pumps/set-active-all?modifiedBy={modifiedBy}", null);
         }
+
+        public async Task<HttpResponseMessage> SetAllPumpsInactiveAsync(int modifiedBy)
+        {
+            return await _httpClient.PutAsync($"api/Pumps/set-inactive-all?modifiedBy={modifiedBy}", null);
+        }
+        public string GetExportExcelUrl(string? keyword = null, int? stationId = null)
+        {
+            var queryParts = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                queryParts.Add($"keyword={Uri.EscapeDataString(keyword.Trim())}");
+            }
+
+            if (stationId.HasValue && stationId > 0)
+            {
+                queryParts.Add($"stationId={stationId.Value}");
+            }
+
+            var query = queryParts.Any() ? $"?{string.Join("&", queryParts)}" : "";
+            return $"api/Pumps/export-excel{query}";
+        }
+
+        public async Task<byte[]> ExportToExcel(string? keyword = null, int? stationId = null)
+        {
+            try
+            {
+                var relativeUrl = GetExportExcelUrl(keyword, stationId);
+            
+                var response = await _httpClient.GetAsync(relativeUrl);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                 
+                    throw new HttpRequestException($"Lỗi {response.StatusCode}: {errorContent}");
+                }
+
+                var stream = await response.Content.ReadAsStreamAsync();
+                using var memoryStream = new MemoryStream();
+                await stream.CopyToAsync(memoryStream);
+                Console.WriteLine($"Tải được {memoryStream.Length} bytes");
+                return memoryStream.ToArray();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi khi gọi API xuất Excel: {ex.Message}\nStackTrace: {ex.StackTrace}");
+                throw; // Ném lại ngoại lệ để xử lý ở phía gọi
+            }
+        }
+
+    }
     }

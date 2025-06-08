@@ -5,6 +5,9 @@ using PumpStationManagement_API.Models;
 using PumpStationManagement_API.Services;
 using PumpStationManagement_API.Enums;
 using PumpStationManagement_API.DTOs;
+using ClosedXML.Excel;
+using System.IO;
+using System.Linq;
 
 namespace PumpStationManagement_API.Controllers
 {
@@ -163,5 +166,86 @@ namespace PumpStationManagement_API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi xóa trạm bơm", error = ex.Message });
             }
         }
+        [HttpGet("export-excel")]
+        public async Task<IActionResult> ExportPumpStationsToExcel([FromQuery] string? keyword = null)
+        {
+            try
+            {
+                Console.WriteLine("Bắt đầu xuất Excel, keyword: {0}", keyword);
+
+                // Kiểm tra DbContext
+                if (context == null)
+                {
+                    Console.WriteLine("DbContext là null");
+                    return StatusCode(500, "DbContext không được khởi tạo");
+                }
+
+                Console.WriteLine("Truy vấn PumpStations...");
+                IQueryable<PumpStation> query = context.PumpStations.Where(p => !p.IsDelete);
+
+                if (!string.IsNullOrEmpty(keyword))
+                {
+                    keyword = keyword.Trim().ToLower();
+                    Console.WriteLine("Áp dụng bộ lọc với keyword: {0}", keyword);
+                    query = query.Where(p => (p.StationName != null && p.StationName.ToLower().Contains(keyword)) ||
+                                            (p.Location != null && p.Location.ToLower().Contains(keyword)));
+                }
+
+                query = query.OrderByDescending(p => p.StationId);
+                Console.WriteLine("Thực hiện truy vấn...");
+                var stations = await query.ToListAsync();
+                Console.WriteLine("Lấy được {0} trạm bơm", stations.Count);
+
+                Console.WriteLine("Tạo file Excel với ClosedXML...");
+                using var workbook = new XLWorkbook();
+                var worksheet = workbook.Worksheets.Add("PumpStations");
+
+                // Tiêu đề
+                worksheet.Cell(1, 1).Value = "Mã";
+                worksheet.Cell(1, 2).Value = "Tên Trạm Bơm";
+                worksheet.Cell(1, 3).Value = "Vị Trí";
+                worksheet.Cell(1, 4).Value = "Mô Tả";
+                worksheet.Cell(1, 5).Value = "Trạng Thái";
+                worksheet.Cell(1, 6).Value = "Ngày Tạo";
+                worksheet.Cell(1, 7).Value = "Ngày Chỉnh Sửa";
+
+                // Dữ liệu
+                Console.WriteLine("Ghi dữ liệu vào worksheet...");
+                int row = 2;
+                foreach (var item in stations)
+                {
+                    Console.WriteLine("Ghi trạm bơm ID: {0}", item.StationId);
+                    worksheet.Cell(row, 1).Value = item.StationId;
+                    worksheet.Cell(row, 2).Value = item.StationName ?? "N/A";
+                    worksheet.Cell(row, 3).Value = item.Location ?? "N/A";
+                    worksheet.Cell(row, 4).Value = item.Description ?? "N/A";
+                    worksheet.Cell(row, 5).Value = EnumHelper.GetDescription((StationStatus)item.Status);
+                    worksheet.Cell(row, 6).Value = item.CreatedOn?.ToString("dd/MM/yyyy") ?? "N/A";
+                    worksheet.Cell(row, 7).Value = item.ModifiedOn?.ToString("dd/MM/yyyy") ?? "N/A";
+                    row++;
+                }
+
+                Console.WriteLine("Lưu file Excel vào stream...");
+                using var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+                stream.Position = 0;
+
+                Console.WriteLine("Trả về file Excel");
+                return File(stream.ToArray(),
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            "PumpStations.xlsx");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi xuất Excel: {ex.Message}\nStackTrace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
+                return StatusCode(500, $"Lỗi khi tạo file Excel: {ex.Message}");
+            }
+        }
+
+
     }
 }

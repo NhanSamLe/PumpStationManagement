@@ -2,7 +2,7 @@
 
 namespace PumpStationManagemnet_BlazorApp.Enums
 {
-    enum UserRole
+    public enum UserRole
     {
         /// <summary>
         /// User

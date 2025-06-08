@@ -26,6 +26,10 @@ build_property._RazorSourceGeneratorDebug =
 build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Layout/AuthLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XEF1dGhMYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Alerts/AlertDetail.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWxlcnRzXEFsZXJ0RGV0YWlsLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
@@ -40,6 +44,14 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Alerts/EditAlert.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWxlcnRzXEVkaXRBbGVydC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Auth/Login.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXV0aFxMb2dpbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Auth/Register.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXV0aFxSZWdpc3Rlci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Home.razor]
@@ -108,6 +120,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Pumps/Pumps.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHVtcHNcUHVtcHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Statistics.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU3RhdGlzdGljcy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Users/CreateUser.razor]

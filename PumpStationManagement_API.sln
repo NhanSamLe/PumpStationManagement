@@ -5,7 +5,7 @@ VisualStudioVersion = 17.10.35122.118
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PumpStationManagement_API", "PumpStationManagement_API\PumpStationManagement_API.csproj", "{1A6A751C-B000-47A3-840C-C1965141EE79}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PumpStationManagemnet_BlazorApp", "PumpStationManagemnet_BlazorApp\PumpStationManagemnet_BlazorApp.csproj", "{E69D92D1-6A25-4E22-A356-4F90A8574CAE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PumpStationManagemnet_BlazorApp", "PumpStationManagemnet_BlazorApp\PumpStationManagemnet_BlazorApp.csproj", "{E69D92D1-6A25-4E22-A356-4F90A8574CAE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

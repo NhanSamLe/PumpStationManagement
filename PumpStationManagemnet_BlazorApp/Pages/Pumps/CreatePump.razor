@@ -3,93 +3,155 @@
 @using PumpStationManagemnet_BlazorApp.Models
 @using PumpStationManagemnet_BlazorApp.Services
 @using PumpStationManagemnet_BlazorApp.Enums
+@using System.Text.Json
+@inject AuthService AuthService
 @inject PumpService PumpService
 @inject PumpStationService PumpStationService
 @inject IJSRuntime JS
 @inject NavigationManager NavigationManager
 
-<h3 class="text-center mb-3">Thêm máy bơm mới</h3>
+<link href="css/pump/pumps.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
-<EditForm Model="@pumpDto" OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+<div class="pumps-container">
+    <h1 class="pumps-title">
+        <i class="fas fa-plus"></i>
+        Thêm máy bơm mới
+    </h1>
 
-   
-    <div class="mb-3">
-        <label class="form-label">Tên máy bơm</label>
-        <InputText class="form-control" @bind-Value="pumpDto.PumpName" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Trạm bơm</label>
-        <InputSelect class="form-control" @bind-Value="pumpDto.StationId">
-            <option value="">Chọn trạm bơm</option>
-            @foreach (var station in pumpStations)
+    <div class="form-card">
+        <EditForm Model="@pumpDto" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            @if (!string.IsNullOrEmpty(ErrorMessage))
             {
-                <option value="@station.StationId">@station.StationName</option>
+                <div class="alert alert-danger" role="alert">
+                    @ErrorMessage
+                </div>
             }
-        </InputSelect>
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Loại máy bơm</label>
-        <InputSelect class="form-control" @bind-Value="pumpDto.PumpType">
-            @foreach (var option in pumpTypes)
-            {
-                <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
-            }
-        </InputSelect>
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Công suất</label>
-        <InputNumber class="form-control" @bind-Value="pumpDto.Capacity" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Nhà sản xuất</label>
-        <InputText class="form-control" @bind-Value="pumpDto.Manufacturer" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Số serial</label>
-        <InputText class="form-control" @bind-Value="pumpDto.SerialNumber" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Thời hạn bảo hành</label>
-        <InputDate class="form-control" @bind-Value="pumpDto.WarrantyExpireDate" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Mô tả</label>
-        <InputTextArea class="form-control" @bind-Value="pumpDto.Description" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Người chỉnh sửa (ID)</label>
-        <InputNumber class="form-control" @bind-Value="pumpDto.ModifiedBy" />
-    </div>
 
-    <button type="submit" class="btn btn-primary">Tạo</button>
-    <a class="btn btn-secondary ms-2" href="/pumps">Hủy</a>
-</EditForm>
+            <div class="form-group">
+                <label class="form-label">Tên máy bơm</label>
+                <InputText class="form-control" @bind-Value="pumpDto.PumpName" placeholder="Nhập tên máy bơm" />
+                <ValidationMessage For="@(() => pumpDto.PumpName)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Trạm bơm</label>
+                <InputSelect class="form-select" @bind-Value="pumpDto.StationId">
+                    <option value="">Chọn trạm bơm</option>
+                    @foreach (var station in pumpStations)
+                    {
+                        <option value="@station.StationId">@station.StationName</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => pumpDto.StationId)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Loại máy bơm</label>
+                <InputSelect class="form-select" @bind-Value="pumpDto.PumpType">
+                    @foreach (var option in pumpTypes)
+                    {
+                        <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => pumpDto.PumpType)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Công suất</label>
+                <InputNumber class="form-control" @bind-Value="pumpDto.Capacity" placeholder="Nhập công suất" />
+                <ValidationMessage For="@(() => pumpDto.Capacity)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Nhà sản xuất</label>
+                <InputText class="form-control" @bind-Value="pumpDto.Manufacturer" placeholder="Nhập nhà sản xuất" />
+                <ValidationMessage For="@(() => pumpDto.Manufacturer)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Số serial</label>
+                <InputText class="form-control" @bind-Value="pumpDto.SerialNumber" placeholder="Nhập số serial" />
+                <ValidationMessage For="@(() => pumpDto.SerialNumber)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Thời hạn bảo hành</label>
+                <InputDate class="form-control" @bind-Value="pumpDto.WarrantyExpireDate" />
+                <ValidationMessage For="@(() => pumpDto.WarrantyExpireDate)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Mô tả</label>
+                <InputTextArea class="form-control" @bind-Value="pumpDto.Description" placeholder="Nhập mô tả" />
+                <ValidationMessage For="@(() => pumpDto.Description)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Trạng thái</label>
+                <InputSelect class="form-select" @bind-Value="pumpDto.Status">
+                    @foreach (var option in pumpStatus)
+                    {
+                        <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => pumpDto.Status)" class="validation-message" />
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-simple btn-primary-simple">
+                    <i class="fas fa-save me-2"></i>
+                    Tạo
+                </button>
+                <a class="btn btn-simple btn-secondary-simple" href="/pumps">
+                    <i class="fas fa-times me-2"></i>
+                    Hủy
+                </a>
+            </div>
+        </EditForm>
+    </div>
+</div>
 
 @code {
     private PumpDTO pumpDto = new();
     private List<PumpStation> pumpStations = new();
     private List<KeyValuePair<Enum, string>> pumpTypes = new();
+    private List<KeyValuePair<Enum, string>> pumpStatus = new();
+    private string? ErrorMessage;
+
     protected override async Task OnInitializedAsync()
     {
         pumpTypes = EnumHelper.GetEnumListWithDescriptions<PumpType>();
+        pumpStatus = EnumHelper.GetEnumListWithDescriptions<PumpStatus>();
         pumpStations = await PumpStationService.GetPumpStationsAsync();
+        pumpDto.Status = (int)PumpStatus.Active; // Default to Active
     }
 
     private async Task HandleValidSubmit()
     {
-        pumpDto.Status = (int)PumpStatus.Active;
-        var response = await PumpService.CreatePumpAsync(pumpDto);
-        if (response.IsSuccessStatusCode)
+        ErrorMessage = null;
+        try
         {
-            await JS.InvokeVoidAsync("alert", "Tạo máy bơm thành công!");
-            NavigationManager.NavigateTo("/pumps");
+            pumpDto.CreatedBy = AuthService.CurrentUserId;
+            var response = await PumpService.CreatePumpAsync(pumpDto);
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Tạo máy bơm thành công!");
+                NavigationManager.NavigateTo("/pumps");
+            }
+            else
+            {
+                var errorMessageJson = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(errorMessageJson);
+                ErrorMessage = doc.RootElement.GetProperty("message").GetString();
+                await JS.InvokeVoidAsync("alert", $"Lỗi: {ErrorMessage}");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            var errorMessage = await response.Content.ReadAsStringAsync();
-            await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+            ErrorMessage = $"Lỗi: {ex.Message}";
+            await JS.InvokeVoidAsync("alert", ErrorMessage);
         }
     }
 }

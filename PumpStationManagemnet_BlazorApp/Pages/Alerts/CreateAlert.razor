@@ -3,67 +3,135 @@
 @using PumpStationManagemnet_BlazorApp.Models
 @using PumpStationManagemnet_BlazorApp.Services
 @using PumpStationManagemnet_BlazorApp.Enums
+@using System.Text.Json
+@inject AuthService AuthService
 @inject AlertService AlertService
 @inject PumpService PumpService
 @inject UserService UserService
 @inject IJSRuntime JS
 @inject NavigationManager NavigationManager
-<h3>CreateAlert</h3>
 
-<EditForm Model="@alertDto" OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+<link href="css/alert/alerts.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
-    <div class="mb-3">
-        <label class="form-label">Máy bơm</label>
-        <InputSelect class="form-control" @bind-Value="alertDto.PumpId">
-            <option value="">Không chọn</option>
-            @foreach (var pump in pumps)
+<div class="alerts-container">
+    <h1 class="alerts-title">
+        <i class="fas fa-plus"></i>
+        Thêm cảnh báo mới
+    </h1>
+
+    <div class="form-card">
+        <EditForm Model="@alertDto" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            @if (!string.IsNullOrEmpty(ErrorMessage))
             {
-                <option value="@pump.PumpId">@pump.PumpName</option>
+                <div class="alert alert-danger" role="alert">
+                    @ErrorMessage
+                </div>
             }
-        </InputSelect>
+
+            <div class="form-group">
+                <label class="form-label">Máy bơm</label>
+                <InputSelect class="form-select" @bind-Value="alertDto.PumpId">
+                    <option value="">Chọn máy bơm</option>
+                    @foreach (var pump in pumps)
+                    {
+                        <option value="@pump.PumpId">@pump.PumpName</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => alertDto.PumpId)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Loại cảnh báo</label>
+                <InputSelect class="form-select" @bind-Value="alertDto.AlertType">
+                    @foreach (var option in alertTypes)
+                    {
+                        <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => alertDto.AlertType)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Nội dung</label>
+                <InputTextArea class="form-control" @bind-Value="alertDto.AlertMessage" placeholder="Nhập nội dung cảnh báo" />
+                <ValidationMessage For="@(() => alertDto.AlertMessage)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Trạng thái</label>
+                <InputSelect class="form-select" @bind-Value="alertDto.Status">
+                    @foreach (var option in alertStatuses)
+                    {
+                        <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => alertDto.Status)" class="validation-message" />
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-simple btn-primary-simple">
+                    <i class="fas fa-save me-2"></i>
+                    Tạo
+                </button>
+                <a class="btn btn-simple btn-secondary-simple" href="/alerts">
+                    <i class="fas fa-times me-2"></i>
+                    Hủy
+                </a>
+            </div>
+        </EditForm>
     </div>
-    <div class="mb-3">
-        <label class="form-label">Loại cảnh báo</label>
-        <InputSelect class="form-control" @bind-Value="alertDto.AlertType">
-            @foreach (var option in alertTypes)
-            {
-                <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
-            }
-        </InputSelect>
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Nội Dung</label>
-        <InputTextArea class="form-control" @bind-Value="alertDto.AlertMessage" />
-    </div>
-    <button type="submit" class="btn btn-primary">Tạo</button>
-    <a class="btn btn-secondary ms-2" href="/alerts">Hủy</a>
-</EditForm>
+</div>
 
 @code {
     private AlertDTO alertDto = new();
     private List<Pump> pumps = new();
     private List<KeyValuePair<Enum, string>> alertTypes = new();
+    private List<KeyValuePair<Enum, string>> alertStatuses = new();
+    private string? ErrorMessage;
+
     protected override async Task OnInitializedAsync()
     {
-        alertTypes = EnumHelper.GetEnumListWithDescriptions<AlertType>();
-        pumps = await PumpService.GetPumpsAsync();
+        try
+        {
+            alertTypes = EnumHelper.GetEnumListWithDescriptions<AlertType>();
+            alertStatuses = EnumHelper.GetEnumListWithDescriptions<AlertStatus>();
+            pumps = await PumpService.GetPumpsAsync();
+            alertDto.Status = (int)AlertStatus.Active; // Default to Active
+            alertDto.CreatedBy = 1; // Default CreatedBy
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Lỗi: {ex.Message}";
+            await JS.InvokeVoidAsync("alert", ErrorMessage);
+        }
     }
 
     private async Task HandleValidSubmit()
     {
-        alertDto.CreatedBy = 1;
-        var response = await AlertService.CreateAlertAsync(alertDto);
-        if (response.IsSuccessStatusCode)
+        alertDto.CreatedBy = AuthService.CurrentUserId ?? 0;
+        ErrorMessage = null;
+        try
         {
-            await JS.InvokeVoidAsync("alert", "Tạo cảnh báo thành công!");
-            NavigationManager.NavigateTo("/alerts");
+            var response = await AlertService.CreateAlertAsync(alertDto);
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Tạo cảnh báo thành công!");
+                NavigationManager.NavigateTo("/alerts");
+            }
+            else
+            {
+                var errorMessageJson = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(errorMessageJson);
+                ErrorMessage = doc.RootElement.GetProperty("message").ToString() ?? errorMessageJson;
+                await JS.InvokeVoidAsync("alert", $"Lỗi: {ErrorMessage}");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            var errorMessage = await response.Content.ReadAsStringAsync();
-            await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+            ErrorMessage = $"Lỗi: {ex.Message}";
+            await JS.InvokeVoidAsync("alert", ErrorMessage);
         }
     }
 }
