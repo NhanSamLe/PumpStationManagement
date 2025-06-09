@@ -6,7 +6,7 @@
     <div class="header-left">
         <div class="logo-section">
             <div class="logo-circle">
-                <span class="logo-text">🎓</span>
+                <img src="images/logo.png" alt="Logo" class="logo-img" />
             </div>
             <div class="university-name">
                 <div class="university-main">TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI</div>
@@ -206,5 +206,21 @@
         font-weight: 500;
         text-align: right;
         padding-right: 50px;
+    }
+
+    .logo-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden; /* cắt bớt phần ảnh vượt kích thước */
+    }
+
+    .logo-img {
+        width: 90px; /* kích thước mong muốn của logo */
+        height: 90px;
+        object-fit: contain; /* giữ tỉ lệ ảnh, không méo */
     }
 </style>

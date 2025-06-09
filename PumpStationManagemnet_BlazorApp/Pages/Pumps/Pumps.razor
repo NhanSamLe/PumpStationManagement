@@ -194,7 +194,7 @@
         {
             try
             {
-                var response = await PumpService.DeletePumpAsync(id, 1);
+                var response = await PumpService.DeletePumpAsync(id, AuthService.CurrentUserId??1);
                 if (response.IsSuccessStatusCode)
                 {
                     pumps = await PumpService.GetPumpsAsync(keyword, stationId);
@@ -230,7 +230,7 @@
     {
         if (await JS.InvokeAsync<bool>("confirm", "Bạn có chắc muốn kích hoạt tất cả máy bơm?"))
         {
-            var response = await PumpService.SetAllPumpsActiveAsync(AuthService.CurrentUserId??0); // 1 là modifiedBy, bạn thay theo user hiện tại nếu có
+            var response = await PumpService.SetAllPumpsActiveAsync(AuthService.CurrentUserId??1); // 1 là modifiedBy, bạn thay theo user hiện tại nếu có
             if (response.IsSuccessStatusCode)
             {
                 await JS.InvokeVoidAsync("alert", "Đã kích hoạt tất cả máy bơm thành công.");
@@ -248,7 +248,7 @@
     {
         if (await JS.InvokeAsync<bool>("confirm", "Bạn có chắc muốn ngưng hoạt động tất cả máy bơm?"))
         {
-            var response = await PumpService.SetAllPumpsInactiveAsync(AuthService.CurrentUserId??0); 
+            var response = await PumpService.SetAllPumpsInactiveAsync(AuthService.CurrentUserId??1); 
             if (response.IsSuccessStatusCode)
             {
                 await JS.InvokeVoidAsync("alert", "Đã ngưng hoạt động tất cả máy bơm thành công.");

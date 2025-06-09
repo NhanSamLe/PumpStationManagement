@@ -70,6 +70,33 @@ namespace PumpStationManagement_API.Services
                 .WithMany(u => u.MaintenanceHistories)
                 .HasForeignKey(m => m.PerformedBy)
                 .OnDelete(DeleteBehavior.Restrict);
+            // OperatingData - CreatedBy
+            modelBuilder.Entity<OperatingData>()
+                .HasOne(od => od.CreatedByNavigation)
+                .WithMany(u => u.OperatingCreatedByNavigations)
+                .HasForeignKey(od => od.CreatedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // OperatingData - ModifiedBy
+            modelBuilder.Entity<OperatingData>()
+                .HasOne(od => od.ModifiedByNavigation)
+                .WithMany(u => u.OperatingModifiedByNavigations)
+                .HasForeignKey(od => od.ModifiedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // MaintenanceHistory - CreatedBy
+            modelBuilder.Entity<MaintenanceHistory>()
+                .HasOne(m => m.CreatedByNavigation)
+                .WithMany(u => u.MaintenanceCreatedByNavigations)
+                .HasForeignKey(m => m.CreatedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // MaintenanceHistory - ModifiedBy
+            modelBuilder.Entity<MaintenanceHistory>()
+                .HasOne(m => m.ModifiedByNavigation)
+                .WithMany(u => u.MaintenanceModifiedByNavigations)
+                .HasForeignKey(m => m.ModifiedBy)
+                .OnDelete(DeleteBehavior.Restrict);
         }
 
     }

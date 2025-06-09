@@ -6,6 +6,7 @@
 @using PumpStationManagemnet_BlazorApp.Public
 @using System.Text.Json
 @inject OperatingService OperatingService
+@inject AuthService AuthService
 @inject PumpService PumpService
 @inject PumpStationService PumpStationService
 @inject IJSRuntime JS
@@ -111,6 +112,7 @@
         ErrorMessage = null;
         try
         {
+            operatingDataDto.CreatedBy = AuthService.CurrentUserId;
             operatingDataDto.Efficiency = CaculateHelper.CaculateEfficiency(
                 operatingDataDto.FlowRate ?? 0,
                 operatingDataDto.Pressure ?? 0,

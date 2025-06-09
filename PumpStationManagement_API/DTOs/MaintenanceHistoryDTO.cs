@@ -21,5 +21,7 @@ namespace PumpStationManagement_API.DTOs
         public int Status { get; set; }
 
         public int? PerformedBy { get; set; }
+        public int? CreatedBy { get; set; }
+        public int? ModifiedBy { get; set; }
     }
 }

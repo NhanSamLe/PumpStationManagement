@@ -99,7 +99,7 @@ namespace PumpStationManagement_API.Controllers
                 context.PumpStations.Add(station);
                 await context.SaveChangesAsync();
                 //var contentAfter = JsonSerializer.Serialize(station);
-                await _auditLogService.LogActionAsync(station.StationId, "PumpStation", "Create", "","", stationDto.ModifiedBy ?? 0, "Tạo mới trạm bơm");
+                await _auditLogService.LogActionAsync(station.StationId, "PumpStation", "Create", "","", stationDto.CreatedBy ?? 0, "Tạo mới trạm bơm");
                 return CreatedAtAction(nameof(GetPumpStation), new { id = station.StationId }, station);
             }
             catch (Exception ex)

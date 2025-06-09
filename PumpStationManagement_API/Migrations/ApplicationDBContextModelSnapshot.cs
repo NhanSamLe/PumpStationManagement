@@ -125,6 +125,9 @@ namespace PumpStationManagement_API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaintenanceId"));
 
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("CreatedOn")
                         .HasColumnType("datetime2");
 
@@ -141,6 +144,9 @@ namespace PumpStationManagement_API.Migrations
                     b.Property<int>("MaintenanceType")
                         .HasColumnType("int");
 
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
                     b.Property<int?>("PerformedBy")
                         .HasColumnType("int");
 
@@ -155,8 +161,12 @@ namespace PumpStationManagement_API.Migrations
 
                     b.HasKey("MaintenanceId");
 
+                    b.HasIndex("CreatedBy");
+
                     b.HasIndex("MaintenanceId")
                         .IsUnique();
+
+                    b.HasIndex("ModifiedBy");
 
                     b.HasIndex("PerformedBy");
 
@@ -173,6 +183,9 @@ namespace PumpStationManagement_API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DataId"));
 
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("CreatedOn")
                         .HasColumnType("datetime2");
 
@@ -184,6 +197,9 @@ namespace PumpStationManagement_API.Migrations
 
                     b.Property<bool>("IsDelete")
                         .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("ModifiedOn")
                         .HasColumnType("datetime2");
@@ -211,8 +227,12 @@ namespace PumpStationManagement_API.Migrations
 
                     b.HasKey("DataId");
 
+                    b.HasIndex("CreatedBy");
+
                     b.HasIndex("DataId")
                         .IsUnique();
+
+                    b.HasIndex("ModifiedBy");
 
                     b.HasIndex("PumpId");
 
@@ -433,6 +453,16 @@ namespace PumpStationManagement_API.Migrations
 
             modelBuilder.Entity("PumpStationManagement_API.Models.MaintenanceHistory", b =>
                 {
+                    b.HasOne("PumpStationManagement_API.Models.User", "CreatedByNavigation")
+                        .WithMany("MaintenanceCreatedByNavigations")
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PumpStationManagement_API.Models.User", "ModifiedByNavigation")
+                        .WithMany("MaintenanceModifiedByNavigations")
+                        .HasForeignKey("ModifiedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("PumpStationManagement_API.Models.User", "PerformedByNavigation")
                         .WithMany("MaintenanceHistories")
                         .HasForeignKey("PerformedBy")
@@ -442,6 +472,10 @@ namespace PumpStationManagement_API.Migrations
                         .WithMany("MaintenanceHistories")
                         .HasForeignKey("PumpId");
 
+                    b.Navigation("CreatedByNavigation");
+
+                    b.Navigation("ModifiedByNavigation");
+
                     b.Navigation("PerformedByNavigation");
 
                     b.Navigation("Pump");
@@ -449,9 +483,23 @@ namespace PumpStationManagement_API.Migrations
 
             modelBuilder.Entity("PumpStationManagement_API.Models.OperatingData", b =>
                 {
+                    b.HasOne("PumpStationManagement_API.Models.User", "CreatedByNavigation")
+                        .WithMany("OperatingCreatedByNavigations")
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PumpStationManagement_API.Models.User", "ModifiedByNavigation")
+                        .WithMany("OperatingModifiedByNavigations")
+                        .HasForeignKey("ModifiedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("PumpStationManagement_API.Models.Pump", "Pump")
                         .WithMany("OperatingDatas")
                         .HasForeignKey("PumpId");
+
+                    b.Navigation("CreatedByNavigation");
+
+                    b.Navigation("ModifiedByNavigation");
 
                     b.Navigation("Pump");
                 });
@@ -516,7 +564,15 @@ namespace PumpStationManagement_API.Migrations
 
                     b.Navigation("AlertModifiedByNavigations");
 
+                    b.Navigation("MaintenanceCreatedByNavigations");
+
                     b.Navigation("MaintenanceHistories");
+
+                    b.Navigation("MaintenanceModifiedByNavigations");
+
+                    b.Navigation("OperatingCreatedByNavigations");
+
+                    b.Navigation("OperatingModifiedByNavigations");
 
                     b.Navigation("PumpCreatedByNavigations");
 

@@ -38,7 +38,16 @@ namespace PumpStationManagement_API.Models
         [ForeignKey(nameof(PerformedBy))]
         public virtual User? PerformedByNavigation { get; set; }
 
- 
+        public int? CreatedBy { get; set; }
+
+        public int? ModifiedBy { get; set; }
+
+        [ForeignKey(nameof(CreatedBy))]
+        public virtual User? CreatedByNavigation { get; set; }
+
+        [ForeignKey(nameof(ModifiedBy))]
+        public virtual User? ModifiedByNavigation { get; set; }
+
         [ForeignKey(nameof(PumpId))]
         public virtual Pump? Pump { get; set; }
     }

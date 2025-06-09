@@ -160,7 +160,7 @@
         {
             try
             {
-                var response = await PumpStationService.DeletePumpStationAsync(id, 1);
+                var response = await PumpStationService.DeletePumpStationAsync(id, AuthService.CurrentUserId??1);
                 if (response.IsSuccessStatusCode)
                 {
                     pumpStations = await PumpStationService.GetPumpStationsAsync(keyword);

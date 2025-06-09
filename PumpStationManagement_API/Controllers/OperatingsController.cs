@@ -107,12 +107,13 @@ namespace PumpStationManagement_API.Controllers
                     Efficiency = operatingDataDto.Efficiency,
                     Status = operatingDataDto.Status,
                     IsDelete = false,
-                    CreatedOn = DateTime.Now
+                    CreatedOn = DateTime.Now,
+                    CreatedBy =  operatingDataDto.CreatedBy
                 };
 
                 context.OperatingDatas.Add(operatingData);
                 await context.SaveChangesAsync();
-                await _auditLogService.LogActionAsync(operatingData.DataId, "Vận Hành", "Tạo Mới", "", "", 1, "Tạo mới dữ liệu vận hành");
+                await _auditLogService.LogActionAsync(operatingData.DataId, "Vận Hành", "Tạo Mới", "", "", operatingDataDto.CreatedBy??1, "Tạo mới dữ liệu vận hành");
                 return CreatedAtAction(nameof(GetOperatingDatum), new { id = operatingData.DataId }, operatingData);
             }
             catch (Exception ex)
@@ -158,9 +159,9 @@ namespace PumpStationManagement_API.Controllers
                 existingOperatingData.Efficiency = operatingDataDto.Efficiency;
                 existingOperatingData.Status = operatingDataDto.Status;
                 existingOperatingData.ModifiedOn = DateTime.Now;
-
+                existingOperatingData.ModifiedBy = operatingDataDto.ModifiedBy ?? 1;
                 await context.SaveChangesAsync();
-                await _auditLogService.LogActionAsync(id, "Vận Hành", "Cập Nhập","", "", 1, "Cập nhật dữ liệu vận hành");
+                await _auditLogService.LogActionAsync(id, "Vận Hành", "Cập Nhập","", "", operatingDataDto.ModifiedBy??1, "Cập nhật dữ liệu vận hành");
                 return Ok(existingOperatingData);
             }
             catch (Exception ex)
@@ -185,7 +186,7 @@ namespace PumpStationManagement_API.Controllers
                 operatingDatum.IsDelete = true;
                 operatingDatum.ModifiedOn = DateTime.Now;
                 await context.SaveChangesAsync();
-                await _auditLogService.LogActionAsync(id, "Vận Hành", "Xóa", "", "",1, "Xóa dữ liệu vận hành");
+                await _auditLogService.LogActionAsync(id, "Vận Hành", "Xóa", "", "",modifiedBy, "Xóa dữ liệu vận hành");
                 return Ok(new { message = "Xóa dữ liệu vận hành thành công" });
             }
             catch (Exception ex)

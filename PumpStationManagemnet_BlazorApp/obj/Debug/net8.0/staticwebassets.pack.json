@@ -81,6 +81,14 @@
       "PackagePath": "staticwebassets\\icon-192.png"
     },
     {
+      "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\images\\background.jpeg",
+      "PackagePath": "staticwebassets\\images\\background.jpeg"
+    },
+    {
+      "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\images\\logo.png",
+      "PackagePath": "staticwebassets\\images\\logo.png"
+    },
+    {
       "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\index.html",
       "PackagePath": "staticwebassets\\index.html"
     },

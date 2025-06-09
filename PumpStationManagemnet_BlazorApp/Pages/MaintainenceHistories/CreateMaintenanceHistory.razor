@@ -4,6 +4,7 @@
 @using PumpStationManagemnet_BlazorApp.Services
 @using PumpStationManagemnet_BlazorApp.Enums
 @using System.Text.Json
+@inject AuthService AuthService
 @inject MaintenanceService MaintenanceService
 @inject PumpService PumpService
 @inject UserService UserService
@@ -132,6 +133,7 @@
         ErrorMessage = null;
         try
         {
+            maintenanceHistoryDto.CreatedBy = AuthService.CurrentUserId ?? 1;
             var response = await MaintenanceService.CreateMaintenanceHistoryAsync(maintenanceHistoryDto);
             if (response.IsSuccessStatusCode)
             {

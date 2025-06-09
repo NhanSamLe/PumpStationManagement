@@ -4,6 +4,7 @@
 @using PumpStationManagemnet_BlazorApp.Services
 @using PumpStationManagemnet_BlazorApp.Enums
 @using System.Text.Json
+@inject AuthService AuthService
 @inject MaintenanceService MaintenanceService
 @inject PumpService PumpService
 @inject UserService UserService
@@ -150,7 +151,7 @@
                     Description = maintenanceHistory.Description,
                     Status = maintenanceHistory.Status,
                     PerformedBy = maintenanceHistory.PerformedBy,
-                   
+
                 };
         }
     }
@@ -160,6 +161,7 @@
         ErrorMessage = null;
         try
         {
+            maintenanceHistoryDto.ModifiedBy = AuthService.CurrentUserId ?? 1;
             var response = await MaintenanceService.UpdateMaintenanceHistoryAsync(Id, maintenanceHistoryDto);
             if (response.IsSuccessStatusCode)
             {

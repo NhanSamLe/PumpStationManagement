@@ -3,6 +3,7 @@
 @using PumpStationManagemnet_BlazorApp.Models
 @using PumpStationManagemnet_BlazorApp.Enums
 @using PumpStationManagemnet_BlazorApp.Services
+@inject AuthService AuthService
 @inject MaintenanceService MaintenanceService
 @inject PumpStationService PumpStationService
 @inject IJSRuntime JS
@@ -184,7 +185,7 @@
         {
             try
             {
-                var response = await MaintenanceService.DeleteMaintenanceHistoryAsync(id, 1);
+                var response = await MaintenanceService.DeleteMaintenanceHistoryAsync(id, AuthService.CurrentUserId??1);
                 if (response.IsSuccessStatusCode)
                 {
                     maintenanceHistories = await MaintenanceService.GetMaintenanceHistoriesAsync(keyword, stationId);
@@ -209,7 +210,7 @@
         {
             try
             {
-                var response = await MaintenanceService.CompleteMaintenanceHistoryAsync(id, 1);
+                var response = await MaintenanceService.CompleteMaintenanceHistoryAsync(id, AuthService.CurrentUserId??1);
                 if (response.IsSuccessStatusCode)
                 {
                     maintenanceHistories = await MaintenanceService.GetMaintenanceHistoriesAsync(keyword, stationId);
@@ -234,7 +235,7 @@
         {
             try
             {
-                var response = await MaintenanceService.ActiveMaintenanceHistoryAsync(id, 1);
+                var response = await MaintenanceService.ActiveMaintenanceHistoryAsync(id, AuthService.CurrentUserId??1);
                 if (response.IsSuccessStatusCode)
                 {
                     maintenanceHistories = await MaintenanceService.GetMaintenanceHistoriesAsync(keyword, stationId);

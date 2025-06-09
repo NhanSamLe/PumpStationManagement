@@ -3,6 +3,7 @@
 @using PumpStationManagemnet_BlazorApp.Models
 @using PumpStationManagemnet_BlazorApp.Services
 @using PumpStationManagemnet_BlazorApp.Enums
+@inject AuthService AuthService
 @inject AlertService AlertService
 @inject PumpStationService PumpStationService
 @inject IJSRuntime JS
@@ -207,7 +208,7 @@
         {
             try
             {
-                var response = await AlertService.DeleteAlertAsync(id, 1);
+                var response = await AlertService.DeleteAlertAsync(id, AuthService.CurrentUserId ?? 1);
                 if (response.IsSuccessStatusCode)
                 {
                     await JS.InvokeVoidAsync("alert", "Xóa cảnh báo thành công!");
@@ -232,7 +233,7 @@
         {
             try
             {
-                var response = await AlertService.ResolveAlertAsync(id, 1);
+                var response = await AlertService.ResolveAlertAsync(id, AuthService.CurrentUserId??1);
                 if (response.IsSuccessStatusCode)
                 {
                     await JS.InvokeVoidAsync("alert", "Xử lý cảnh báo thành công!");
@@ -257,7 +258,7 @@
         {
             try
             {
-                var response = await AlertService.IgnoreAlertAsync(id, 1);
+                var response = await AlertService.IgnoreAlertAsync(id, AuthService.CurrentUserId ?? 1);
                 if (response.IsSuccessStatusCode)
                 {
                     await JS.InvokeVoidAsync("alert", "Bỏ qua cảnh báo thành công!");

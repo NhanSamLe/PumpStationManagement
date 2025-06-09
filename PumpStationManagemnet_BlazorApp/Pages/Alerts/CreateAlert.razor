@@ -114,6 +114,7 @@
         ErrorMessage = null;
         try
         {
+            alertDto.CreatedBy = AuthService.CurrentUserId ?? 1;
             var response = await AlertService.CreateAlertAsync(alertDto);
             if (response.IsSuccessStatusCode)
             {

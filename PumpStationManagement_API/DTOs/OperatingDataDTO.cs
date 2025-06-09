@@ -22,6 +22,9 @@ namespace PumpStationManagement_API.DTOs
 
         public double? Efficiency { get; set; }
 
+        public int? CreatedBy { get; set; }
+        public int? ModifiedBy { get; set; }
+
         [Required]
         public int Status { get; set; }
     }
