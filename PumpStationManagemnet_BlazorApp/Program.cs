@@ -23,4 +23,5 @@ builder.Services.AddScoped<MaintenanceService>();
 builder.Services.AddScoped<AlertService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<StatisticsService>();
+builder.Services.AddScoped<AuditLogService>();
 await builder.Build().RunAsync();

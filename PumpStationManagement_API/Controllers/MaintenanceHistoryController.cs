@@ -13,10 +13,12 @@ namespace PumpStationManagement_API.Controllers
     public class MaintenanceHistoryController : ControllerBase
     {
         private readonly ApplicationDBContext context;
+        private readonly AuditLogService _auditLogService;
 
-        public MaintenanceHistoryController(ApplicationDBContext context)
+        public MaintenanceHistoryController(ApplicationDBContext context, AuditLogService auditLogService)
         {
             this.context = context;
+            this._auditLogService = auditLogService;
         }
         // GET: api/MaintenanceHistory
         [HttpGet]
@@ -123,7 +125,7 @@ namespace PumpStationManagement_API.Controllers
 
                 context.MaintenanceHistories.Add(maintenanceHistory);
                 await context.SaveChangesAsync();
-
+                await _auditLogService.LogActionAsync(maintenanceHistory.MaintenanceId, "Bảo Trì", "Tạo Mới", "","", maintenanceHistoryDto.PerformedBy ?? 0, "Tạo mới lịch sử bảo trì");
                 return CreatedAtAction(nameof(GetMaintenanceHistory), new { id = maintenanceHistory.MaintenanceId }, maintenanceHistory);
             }
             catch (Exception ex)
@@ -182,6 +184,7 @@ namespace PumpStationManagement_API.Controllers
                 existingMaintenanceHistory.PerformedBy = maintenanceHistoryDto.PerformedBy;
 
                 await context.SaveChangesAsync();
+                await _auditLogService.LogActionAsync(id, "Bảo Trì", "Cập Nhập", "", "", maintenanceHistoryDto.PerformedBy ?? 0, "Cập nhật lịch sử bảo trì");
                 return Ok(existingMaintenanceHistory);
             }
             catch (Exception ex)
@@ -207,6 +210,7 @@ namespace PumpStationManagement_API.Controllers
                 maintenanceHistory.IsDelete = true;
                 maintenanceHistory.PerformedBy = modifiedBy;
                 await context.SaveChangesAsync();
+                await _auditLogService.LogActionAsync(id, "Bảo Trì", "Xóa", "", "", modifiedBy, "Xóa lịch sử bảo trì");
                 return Ok(new { message = "Xóa lịch sử bảo trì thành công" });
             }
             catch (Exception ex)
@@ -238,6 +242,7 @@ namespace PumpStationManagement_API.Controllers
                 maintenanceHistory.EndDate = DateTime.Now;
                 maintenanceHistory.PerformedBy = modifiedBy;
                 await context.SaveChangesAsync();
+                await _auditLogService.LogActionAsync(id, "Bảo Trì", " Hoàn Thành", "", "", modifiedBy, "Hoàn Thành Bảo Trì");
                 return Ok(new { message = "Cập nhật trạng thái bảo trì thành công" });
             }
             catch (Exception ex)
@@ -266,6 +271,7 @@ namespace PumpStationManagement_API.Controllers
                 maintenanceHistory.Status = (int)MaintainStatus.InProgress; // 2 = Completed
                 maintenanceHistory.PerformedBy = modifiedBy;
                 await context.SaveChangesAsync();
+                await _auditLogService.LogActionAsync(id, "Bảo Trì", " Kích Hoạt", "", "", modifiedBy, "Bắt Đầu Tiến Hành Bảo Trì");
                 return Ok(new { message = "Cập nhật trạng thái bảo trì thành công" });
             }
             catch (Exception ex)

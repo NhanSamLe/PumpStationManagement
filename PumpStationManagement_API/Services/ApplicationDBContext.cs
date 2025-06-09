@@ -19,6 +19,7 @@ namespace PumpStationManagement_API.Services
 
         public virtual DbSet<PumpStation> PumpStations { get; set; }
 
+        public virtual DbSet<AuditLog> AuditLogs { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

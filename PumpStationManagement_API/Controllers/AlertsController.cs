@@ -13,10 +13,12 @@ namespace PumpStationManagement_API.Controllers
     public class AlertsController : ControllerBase
     {
         private readonly ApplicationDBContext context;
+        private readonly AuditLogService _auditLogService;
 
-        public AlertsController(ApplicationDBContext context)
+        public AlertsController(ApplicationDBContext context, AuditLogService auditLogService)
         {
             this.context = context;
+            this._auditLogService = auditLogService;
         }
 
         [HttpGet]
@@ -120,7 +122,7 @@ namespace PumpStationManagement_API.Controllers
 
                 context.Alerts.Add(alert);
                 await context.SaveChangesAsync();
-
+                await _auditLogService.LogActionAsync(alert.AlertId, "Cảnh Báo", "Tạo Mới", "", "", alertDto.CreatedBy ?? 0, "Tạo mới cảnh báo");
                 return CreatedAtAction(nameof(GetAlert), new { id = alert.AlertId }, alert);
             }
             catch (Exception ex)
@@ -178,6 +180,7 @@ namespace PumpStationManagement_API.Controllers
                 existingAlert.ModifiedOn = DateTime.Now;
 
                 await context.SaveChangesAsync();
+                await _auditLogService.LogActionAsync(id, "Cảnh Báo", "Cập Nhập", "", "", alertDto.ModifiedBy ?? 0, "Cập nhật cảnh báo");
                 return Ok(existingAlert);
             }
             catch (Exception ex)
@@ -206,6 +209,7 @@ namespace PumpStationManagement_API.Controllers
                 alert.ModifiedOn = DateTime.Now;
 
                 await context.SaveChangesAsync();
+                await _auditLogService.LogActionAsync(id, "Cảnh Báo", "Xóa", "", "", modifiedBy, "Xóa cảnh báo");
                 return Ok(new { message = "Xóa cảnh báo thành công" });
             }
             catch (Exception ex)
@@ -238,6 +242,7 @@ namespace PumpStationManagement_API.Controllers
                 alert.ModifiedOn = DateTime.Now;
 
                 await context.SaveChangesAsync();
+                await _auditLogService.LogActionAsync(id, "Cảnh Báo", "Xử Lý", "", "", modifiedBy, "Đã Xử lý cảnh báo");
                 return Ok(new { message = "Xử lý cảnh báo thành công" });
             }
             catch (Exception ex)
@@ -270,6 +275,7 @@ namespace PumpStationManagement_API.Controllers
                 alert.ModifiedOn = DateTime.Now;
 
                 await context.SaveChangesAsync();
+                await _auditLogService.LogActionAsync(id, "Cảnh Báo", "Bỏ Qua", "", "", modifiedBy, "Đã bỏ qua cảnh báo");
                 return Ok(new { message = "Bỏ qua cảnh báo thành công" });
             }
             catch (Exception ex)

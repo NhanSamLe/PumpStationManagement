@@ -14,10 +14,13 @@ namespace PumpStationManagement_API.Controllers
     [ApiController]
     public class PumpsController : ControllerBase
     {
-        private ApplicationDBContext context;
-        public PumpsController(ApplicationDBContext context)
+        private readonly ApplicationDBContext context;
+        private readonly AuditLogService _auditLogService;
+
+        public PumpsController(ApplicationDBContext context, AuditLogService auditLogService)
         {
             this.context = context;
+            this._auditLogService = auditLogService;
         }
         [HttpGet]
         public async Task<ActionResult<List<Pump>>> GetPumps([FromQuery] string? keyword = null, [FromQuery] int? stationId = null)
@@ -103,12 +106,12 @@ namespace PumpStationManagement_API.Controllers
                     Description = pumpDto.Description,
                     IsDelete = false,
                     CreatedOn = DateTime.Now,
-                    CreatedBy = pumpDto.ModifiedBy ?? 0 // Giả sử 0 là hệ thống hoặc người dùng tự tạo
+                    CreatedBy = pumpDto.CreatedBy ?? 0 // Giả sử 0 là hệ thống hoặc người dùng tự tạo
                 };
 
                 context.Pumps.Add(pump);
                 await context.SaveChangesAsync();
-
+                await _auditLogService.LogActionAsync(pump.PumpId, "Máy Bơm", "Tạo Mới", "", "", pumpDto.CreatedBy ?? 0, "Tạo mới máy bơm");
                 return CreatedAtAction(nameof(GetPump), new { id = pump.PumpId }, pump);
             }
             catch (Exception ex)
@@ -157,6 +160,7 @@ namespace PumpStationManagement_API.Controllers
                 existingPump.ModifiedOn = DateTime.Now;
 
                 await context.SaveChangesAsync();
+                await _auditLogService.LogActionAsync(id, "Máy Bơm", "Cập Nhập", "","", pumpDto.ModifiedBy ?? 0, "Cập nhật máy bơm");
                 return Ok(existingPump);
             }
             catch (Exception ex)
@@ -184,6 +188,7 @@ namespace PumpStationManagement_API.Controllers
                 pump.ModifiedOn = DateTime.Now;
 
                 await context.SaveChangesAsync();
+                await _auditLogService.LogActionAsync(id, "Máy Bơm", "Xóa", "", "", modifiedBy, "Xóa máy bơm");
                 return Ok(new { message = "Xóa máy bơm thành công" });
             }
             catch (Exception ex)
@@ -297,6 +302,7 @@ namespace PumpStationManagement_API.Controllers
                     pump.Status = (int)PumpStatus.Active;
                     pump.ModifiedBy = modifiedBy;
                     pump.ModifiedOn = DateTime.Now;
+                    await _auditLogService.LogActionAsync(pump.PumpId, "Máy Bơm", "Kích Hoạt", "", "", modifiedBy, "Chuyển trạng thái tất cả máy bơm thành Đang hoạt động");
                 }
 
                 await context.SaveChangesAsync();
@@ -320,6 +326,7 @@ namespace PumpStationManagement_API.Controllers
                     pump.Status = (int)PumpStatus.Inactive;
                     pump.ModifiedBy = modifiedBy;
                     pump.ModifiedOn = DateTime.Now;
+                    await _auditLogService.LogActionAsync(pump.PumpId, "Máy Bơm", "Ngừng", "","", modifiedBy, "Chuyển trạng thái tất cả máy bơm thành Ngừng hoạt động");
                 }
 
                 await context.SaveChangesAsync();

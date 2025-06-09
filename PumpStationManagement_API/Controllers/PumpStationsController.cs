@@ -6,8 +6,10 @@ using PumpStationManagement_API.Services;
 using PumpStationManagement_API.Enums;
 using PumpStationManagement_API.DTOs;
 using ClosedXML.Excel;
+using System.Text.Json;
 using System.IO;
 using System.Linq;
+using DocumentFormat.OpenXml.Office2010.Excel;
 
 namespace PumpStationManagement_API.Controllers
 {
@@ -15,10 +17,13 @@ namespace PumpStationManagement_API.Controllers
     [ApiController]
     public class PumpStationsController : ControllerBase
     {
-        private ApplicationDBContext context;
-        public PumpStationsController(ApplicationDBContext context)
+        private readonly ApplicationDBContext context;
+        private readonly AuditLogService _auditLogService;
+
+        public PumpStationsController(ApplicationDBContext context, AuditLogService auditLogService)
         {
             this.context = context;
+            this._auditLogService = auditLogService;
         }
         // GET: api/PumpStations
         [HttpGet]
@@ -88,16 +93,23 @@ namespace PumpStationManagement_API.Controllers
                     Status = stationDto.Status != null ? stationDto.Status : (int)StationStatus.Active,
                     IsDelete = false,
                     CreatedOn = DateTime.Now,
-                    CreatedBy = stationDto.ModifiedBy ?? 0 // Giả sử 0 là hệ thống hoặc người dùng tự tạo
+                    CreatedBy = stationDto.CreatedBy ?? 0 // Giả sử 0 là hệ thống hoặc người dùng tự tạo
                 };
 
                 context.PumpStations.Add(station);
                 await context.SaveChangesAsync();
-
+                //var contentAfter = JsonSerializer.Serialize(station);
+                await _auditLogService.LogActionAsync(station.StationId, "PumpStation", "Create", "","", stationDto.ModifiedBy ?? 0, "Tạo mới trạm bơm");
                 return CreatedAtAction(nameof(GetPumpStation), new { id = station.StationId }, station);
             }
             catch (Exception ex)
             {
+                var innerException = ex.InnerException;
+                while (innerException != null)
+                {
+                    Console.WriteLine(innerException.Message);
+                    innerException = innerException.InnerException;
+                }
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi tạo trạm bơm", error = ex.Message });
             }
         }
@@ -116,11 +128,12 @@ namespace PumpStationManagement_API.Controllers
                 var existingStation = await context.PumpStations
                     .FirstOrDefaultAsync(p => p.StationId == id && !p.IsDelete);
 
+
                 if (existingStation == null)
                 {
                     return NotFound(new { message = "Không tìm thấy trạm bơm" });
                 }
-
+              //  var contentBefore = JsonSerializer.Serialize(existingStation);
                 existingStation.StationName = stationDto.StationName;
                 existingStation.Location = stationDto.Location;
                 existingStation.Description = stationDto.Description;
@@ -132,6 +145,8 @@ namespace PumpStationManagement_API.Controllers
                 existingStation.ModifiedOn = DateTime.Now;
 
                 await context.SaveChangesAsync();
+               // var contentAfter = JsonSerializer.Serialize(existingStation);
+                await _auditLogService.LogActionAsync(id, "PumpStation", "Update", "", "", stationDto.ModifiedBy ?? 0, "Cập nhật trạm bơm");
                 return Ok(existingStation);
             }
             catch (Exception ex)
@@ -153,16 +168,18 @@ namespace PumpStationManagement_API.Controllers
                 {
                     return NotFound(new { message = "Không tìm thấy trạm bơm" });
                 }
-
+                //var contentBefore = JsonSerializer.Serialize(station);
                 station.IsDelete = true;
                 station.ModifiedBy = modifiedBy;
                 station.ModifiedOn = DateTime.Now;
 
                 await context.SaveChangesAsync();
+                await _auditLogService.LogActionAsync(id, "PumpStation", "Delete", "", "", modifiedBy, "Xóa trạm bơm");
                 return Ok(new { message = "Xóa trạm bơm thành công" });
             }
             catch (Exception ex)
             {
+                
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi xóa trạm bơm", error = ex.Message });
             }
         }

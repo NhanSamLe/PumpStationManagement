@@ -46,6 +46,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWxlcnRzXEVkaXRBbGVydC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/AuditLogs.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXVkaXRMb2dzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/Admin/source/repos/PumpStationManagement_API/PumpStationManagemnet_BlazorApp/Pages/Auth/Login.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXV0aFxMb2dpbi5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 

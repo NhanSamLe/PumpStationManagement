@@ -14,9 +14,12 @@ namespace PumpStationManagement_API.Controllers
     public class OperatingsController : ControllerBase
     {
         private readonly ApplicationDBContext context;
-        public OperatingsController(ApplicationDBContext context)
+        private readonly AuditLogService _auditLogService;
+
+        public OperatingsController(ApplicationDBContext context, AuditLogService auditLogService)
         {
             this.context = context;
+            this._auditLogService = auditLogService;
         }
         [HttpGet]
         public async Task<ActionResult<List<OperatingData>>> GetOperatingData([FromQuery] string? keyword = null, [FromQuery] int? stationId = null)
@@ -109,7 +112,7 @@ namespace PumpStationManagement_API.Controllers
 
                 context.OperatingDatas.Add(operatingData);
                 await context.SaveChangesAsync();
-
+                await _auditLogService.LogActionAsync(operatingData.DataId, "Vận Hành", "Tạo Mới", "", "", 1, "Tạo mới dữ liệu vận hành");
                 return CreatedAtAction(nameof(GetOperatingDatum), new { id = operatingData.DataId }, operatingData);
             }
             catch (Exception ex)
@@ -157,6 +160,7 @@ namespace PumpStationManagement_API.Controllers
                 existingOperatingData.ModifiedOn = DateTime.Now;
 
                 await context.SaveChangesAsync();
+                await _auditLogService.LogActionAsync(id, "Vận Hành", "Cập Nhập","", "", 1, "Cập nhật dữ liệu vận hành");
                 return Ok(existingOperatingData);
             }
             catch (Exception ex)
@@ -181,6 +185,7 @@ namespace PumpStationManagement_API.Controllers
                 operatingDatum.IsDelete = true;
                 operatingDatum.ModifiedOn = DateTime.Now;
                 await context.SaveChangesAsync();
+                await _auditLogService.LogActionAsync(id, "Vận Hành", "Xóa", "", "",1, "Xóa dữ liệu vận hành");
                 return Ok(new { message = "Xóa dữ liệu vận hành thành công" });
             }
             catch (Exception ex)
