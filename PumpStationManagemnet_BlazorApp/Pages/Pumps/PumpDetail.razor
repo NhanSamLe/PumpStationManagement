@@ -47,6 +47,10 @@
                     <span class="info-value">@pump.Capacity</span>
                 </div>
                 <div class="info-row">
+                    <span class="info-label"><i class="fas fa-bolt me-2"></i>Số giờ đã vận hành:</span>
+                    <span class="info-value">@pump.TotalOperatingHours Giờ</span> 
+                </div>
+                <div class="info-row">
                     <span class="info-label"><i class="fas fa-toggle-on me-2"></i>Trạng thái:</span>
                     <span class="status-badge @(pump.Status == (int)PumpStatus.Active ? "status-active" : "status-inactive")">
                         @EnumHelper.GetDescription((PumpStatus)pump.Status)

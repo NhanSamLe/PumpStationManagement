@@ -307,14 +307,19 @@ namespace PumpStationManagement_API.Controllers
             try
             {
                 var user = await context.Users
-                    .FirstOrDefaultAsync(u => u.Username == request.Username && !u.IsDelete);
+                .FirstOrDefaultAsync(u =>
+                u.Username == request.Username &&
+                !u.IsDelete &&
+                u.IsActive == true);
 
-                if (user == null || (request.Password != user.Password))
+                if (user == null || request.Password != user.Password)
                 {
                     return Unauthorized(new { message = "Tên đăng nhập hoặc mật khẩu không đúng" });
                 }
+
                 user.LastLogin = DateTime.Now;
                 await context.SaveChangesAsync();
+
                 return Ok(user);
             }
             catch (Exception ex)

@@ -106,11 +106,14 @@
                                            title="Chỉnh sửa">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <button class="btn btn-action btn-danger-action"
-                                                @onclick="() => DeletePumpStation(station.StationId)"
-                                                title="Xóa">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                        @if (AuthService.IsAuthenticated && AuthService.HasRole(UserRole.Admin))
+                                        {
+                                            <button class="btn btn-action btn-danger-action"
+                                                    @onclick="() => DeletePumpStation(station.StationId)"
+                                                    title="Xóa">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        }
                                     </div>
                                 </td>
                             </tr>

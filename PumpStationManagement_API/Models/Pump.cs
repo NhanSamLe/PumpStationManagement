@@ -34,6 +34,8 @@ namespace PumpStationManagement_API.Models
 
         public string? Description { get; set; }
 
+        public double? TotalOperatingHours { get; set; }
+
         public int? CreatedBy { get; set; }
 
         public DateTime? CreatedOn { get; set; }

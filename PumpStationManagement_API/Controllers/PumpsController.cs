@@ -7,6 +7,7 @@ using PumpStationManagement_API.Enums;
 using PumpStationManagement_API.DTOs;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.InkML;
 
 namespace PumpStationManagement_API.Controllers
 {
@@ -105,6 +106,7 @@ namespace PumpStationManagement_API.Controllers
                     WarrantyExpireDate = pumpDto.WarrantyExpireDate,
                     Description = pumpDto.Description,
                     IsDelete = false,
+                    TotalOperatingHours = 0,
                     CreatedOn = DateTime.Now,
                     CreatedBy = pumpDto.CreatedBy ?? 0 // Giả sử 0 là hệ thống hoặc người dùng tự tạo
                 };
@@ -290,53 +292,89 @@ namespace PumpStationManagement_API.Controllers
             }
         }
 
-        [HttpPut("set-active-all")]
-        public async Task<ActionResult> SetAllPumpsActive([FromQuery] int modifiedBy)
+        [HttpPut("restore-all-status")]
+        public async Task<ActionResult> RestorePumpStatus([FromQuery] int modifiedBy)
         {
             try
             {
-                var pumps = await context.Pumps.Where(p => !p.IsDelete).ToListAsync();
-
-                foreach (var pump in pumps)
+                var backups = await context.PumpStatusBackups.ToListAsync();
+                if (backups == null || backups.Count == 0)
                 {
-                    pump.Status = (int)PumpStatus.Active;
-                    pump.ModifiedBy = modifiedBy;
-                    pump.ModifiedOn = DateTime.Now;
-                    await _auditLogService.LogActionAsync(pump.PumpId, "Máy Bơm", "Kích Hoạt", "", "", modifiedBy, "Chuyển trạng thái tất cả máy bơm thành Đang hoạt động");
+                    return BadRequest(new { message = "Không có trạng thái nào để khôi phục." });
                 }
 
+                foreach (var backup in backups)
+                {
+                    var pump = await context.Pumps.FirstOrDefaultAsync(p => p.PumpId == backup.PumpId && !p.IsDelete);
+                    if (pump != null)
+                    {
+                        pump.Status = backup.OriginalStatus;
+                        pump.ModifiedBy = modifiedBy;
+                        pump.ModifiedOn = DateTime.Now;
+
+                        await _auditLogService.LogActionAsync(pump.PumpId, "Máy Bơm", "Khôi phục", "", "", modifiedBy, "Khôi phục trạng thái máy bơm");
+                    }
+                }
+
+                context.PumpStatusBackups.RemoveRange(backups);
                 await context.SaveChangesAsync();
-                return Ok(new { message = "Đã chuyển trạng thái tất cả máy bơm thành Đang hoạt động" });
+
+                return Ok(new { message = "Đã khôi phục trạng thái máy bơm." });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi cập nhật trạng thái máy bơm", error = ex.Message });
+                return StatusCode(500, new { message = "Lỗi khi khôi phục", error = ex.Message });
             }
         }
 
-        [HttpPut("set-inactive-all")]
-        public async Task<ActionResult> SetAllPumpsInactive([FromQuery] int modifiedBy)
+        [HttpPut("deactivate-all-temp")]
+        public async Task<ActionResult> DeactivateAllTemporarily([FromQuery] int modifiedBy)
         {
             try
             {
                 var pumps = await context.Pumps.Where(p => !p.IsDelete).ToListAsync();
 
+                // Lưu trạng thái hiện tại nếu chưa có backup
+                var existingBackup = await context.PumpStatusBackups.AnyAsync();
+                if (!existingBackup)
+                {
+                    foreach (var pump in pumps)
+                    {
+                        context.PumpStatusBackups.Add(new PumpStatusBackup
+                        {
+                            PumpId = pump.PumpId,
+                            OriginalStatus = pump.Status,
+                            BackupTime = DateTime.Now
+                        });
+                    }
+
+                    await context.SaveChangesAsync(); // Save backup
+                }
+
+                // Cập nhật trạng thái thành Inactive
                 foreach (var pump in pumps)
                 {
                     pump.Status = (int)PumpStatus.Inactive;
                     pump.ModifiedBy = modifiedBy;
                     pump.ModifiedOn = DateTime.Now;
-                    await _auditLogService.LogActionAsync(pump.PumpId, "Máy Bơm", "Ngừng", "","", modifiedBy, "Chuyển trạng thái tất cả máy bơm thành Ngừng hoạt động");
+
+                    await _auditLogService.LogActionAsync(pump.PumpId, "Máy Bơm", "Ngừng tạm thời", "", "", modifiedBy, "Chuyển trạng thái máy bơm thành Ngừng (tạm thời)");
                 }
 
                 await context.SaveChangesAsync();
-                return Ok(new { message = "Đã chuyển trạng thái tất cả máy bơm thành Ngừng hoạt động" });
+                return Ok(new { message = "Đã ngừng tất cả máy bơm tạm thời" });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi cập nhật trạng thái máy bơm", error = ex.Message });
+                return StatusCode(500, new { message = "Lỗi", error = ex.Message });
             }
         }
 
+        [HttpGet("IsTemporarilyDeactivated")]
+        public IActionResult IsTemporarilyDeactivated()
+        {
+            bool hasTemporaryDeactivation = context.PumpStatusBackups.Any(); 
+            return Ok(hasTemporaryDeactivation);
+        }
     }
 }

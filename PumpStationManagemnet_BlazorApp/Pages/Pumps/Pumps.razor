@@ -123,16 +123,22 @@
                                            title="Xem chi tiết">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a class="btn btn-action btn-warning-action"
-                                           href="/pumps/edit/@pump.PumpId"
-                                           title="Chỉnh sửa">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
+                                        @if(!@isTemporarilyDeactivated)
+                                        {
+                                         if(pump.Status != 2)
+                                            {
+                                                <a class="btn btn-action btn-warning-action"
+                                                   href="/pumps/edit/@pump.PumpId"
+                                                   title="Chỉnh sửa">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            }
                                         <button class="btn btn-action btn-danger-action"
                                                 @onclick="() => DeletePump(pump.PumpId)"
                                                 title="Xóa">
                                             <i class="fas fa-trash"></i>
                                         </button>
+                                        }
                                     </div>
                                 </td>
                             </tr>
@@ -144,14 +150,9 @@
     }
     @if (AuthService.IsAuthenticated && AuthService.HasRole(UserRole.Admin))
     {
-        <button class="btn btn-outline-success me-2 mt-3" @onclick="ActivateAllPumps">
-            <i class="fas fa-play me-2"></i>
-            Kích hoạt toàn bộ
-        </button>
-
-        <button class="btn btn-outline-danger me-2 mt-3" @onclick="DeactivateAllPumps">
-            <i class="fas fa-stop me-2"></i>
-            Ngưng toàn bộ
+        <button class="btn btn-outline-secondary me-2 mt-3" @onclick="TogglePumpTemporaryStatus">
+            <i class="fas @(isTemporarilyDeactivated ? "fa-history" : "fa-stop") me-2"></i>
+            @(isTemporarilyDeactivated ? "Khôi phục trạng thái" : "Ngưng tạm thời tất cả")
         </button>
         <button class="btn btn-outline-success mt-3" @onclick="ExportToExcel">
             <i class="fas fa-file-excel me-2"></i>
@@ -166,9 +167,11 @@
     private List<PumpStation> pumpStations = new();
     private string keyword = string.Empty;
     private int? stationId;
+    private bool isTemporarilyDeactivated ;
 
     protected override async Task OnInitializedAsync()
     {
+        isTemporarilyDeactivated = await PumpService.IsTemporarilyDeactivatedAsync();
         pumpStations = await PumpStationService.GetPumpStationsAsync();
         pumps = await PumpService.GetPumpsAsync();
     }
@@ -226,38 +229,42 @@
             await JS.InvokeVoidAsync("alert", $"Lỗi khi xuất Excel: {ex.Message}");
         }
     }
-    private async Task ActivateAllPumps()
+    private async Task TogglePumpTemporaryStatus()
     {
-        if (await JS.InvokeAsync<bool>("confirm", "Bạn có chắc muốn kích hoạt tất cả máy bơm?"))
+        if (!isTemporarilyDeactivated)
         {
-            var response = await PumpService.SetAllPumpsActiveAsync(AuthService.CurrentUserId??1); // 1 là modifiedBy, bạn thay theo user hiện tại nếu có
-            if (response.IsSuccessStatusCode)
+            if (await JS.InvokeAsync<bool>("confirm", "Bạn có chắc muốn ngưng tạm thời tất cả máy bơm?"))
             {
-                await JS.InvokeVoidAsync("alert", "Đã kích hoạt tất cả máy bơm thành công.");
-                pumps = await PumpService.GetPumpsAsync(keyword, stationId); // Tải lại dữ liệu
-            }
-            else
-            {
-                var errorMessage = await response.Content.ReadAsStringAsync();
-                await JS.InvokeVoidAsync("alert", $"Lỗi khi kích hoạt: {errorMessage}");
+                var response = await PumpService.DeactivateAllTemporarilyAsync(AuthService.CurrentUserId ?? 1);
+                if (response.IsSuccessStatusCode)
+                {
+                    isTemporarilyDeactivated = true;
+                    await JS.InvokeVoidAsync("alert", "Đã ngưng tạm thời tất cả máy bơm.");
+                    pumps = await PumpService.GetPumpsAsync(keyword, stationId);
+                }
+                else
+                {
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+                }
             }
         }
-    }
-
-    private async Task DeactivateAllPumps()
-    {
-        if (await JS.InvokeAsync<bool>("confirm", "Bạn có chắc muốn ngưng hoạt động tất cả máy bơm?"))
+        else
         {
-            var response = await PumpService.SetAllPumpsInactiveAsync(AuthService.CurrentUserId??1); 
-            if (response.IsSuccessStatusCode)
+            if (await JS.InvokeAsync<bool>("confirm", "Bạn có chắc muốn khôi phục trạng thái máy bơm?"))
             {
-                await JS.InvokeVoidAsync("alert", "Đã ngưng hoạt động tất cả máy bơm thành công.");
-                pumps = await PumpService.GetPumpsAsync(keyword, stationId); // Tải lại dữ liệu
-            }
-            else
-            {
-                var errorMessage = await response.Content.ReadAsStringAsync();
-                await JS.InvokeVoidAsync("alert", $"Lỗi khi ngưng hoạt động: {errorMessage}");
+                var response = await PumpService.RestorePumpStatusAsync(AuthService.CurrentUserId ?? 1);
+                if (response.IsSuccessStatusCode)
+                {
+                    isTemporarilyDeactivated = false;
+                    await JS.InvokeVoidAsync("alert", "Đã khôi phục trạng thái máy bơm.");
+                    pumps = await PumpService.GetPumpsAsync(keyword, stationId);
+                }
+                else
+                {
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    await JS.InvokeVoidAsync("alert", $"Lỗi: {errorMessage}");
+                }
             }
         }
     }

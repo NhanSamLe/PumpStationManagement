@@ -118,6 +118,12 @@
                 operatingDataDto.Pressure ?? 0,
                 operatingDataDto.PowerConsumption ?? 0
             );
+            if (operatingDataDto.Efficiency > 100)
+            {
+                ErrorMessage = "Lỗi: Hiệu suất vượt quá 100%. Vui lòng kiểm tra và nhập đúng các thông số!";
+                await JS.InvokeVoidAsync("alert", ErrorMessage);
+                return; 
+            }
             operatingDataDto.Status = CaculateHelper.EfficiencyStatus(operatingDataDto.Efficiency ?? 0);
             var response = await OperatingService.CreateOperatingDatumAsync(operatingDataDto);
             if (response.IsSuccessStatusCode)

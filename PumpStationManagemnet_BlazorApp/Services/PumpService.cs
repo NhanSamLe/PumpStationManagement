@@ -51,14 +51,20 @@ namespace PumpStationManagemnet_BlazorApp.Services
             {
                 return await _httpClient.DeleteAsync($"api/Pumps/{id}?modifiedBy={modifiedBy}");
             }
-        public async Task<HttpResponseMessage> SetAllPumpsActiveAsync(int modifiedBy)
+        public async Task<HttpResponseMessage> DeactivateAllTemporarilyAsync(int modifiedBy)
         {
-            return await _httpClient.PutAsync($"api/Pumps/set-active-all?modifiedBy={modifiedBy}", null);
+            return await _httpClient.PutAsync($"api/Pumps/deactivate-all-temp?modifiedBy={modifiedBy}", null);
         }
 
-        public async Task<HttpResponseMessage> SetAllPumpsInactiveAsync(int modifiedBy)
+        public async Task<HttpResponseMessage> RestorePumpStatusAsync(int modifiedBy)
         {
-            return await _httpClient.PutAsync($"api/Pumps/set-inactive-all?modifiedBy={modifiedBy}", null);
+            return await _httpClient.PutAsync($"api/Pumps/restore-all-status?modifiedBy={modifiedBy}", null);
+        }
+
+        public async Task<bool> IsTemporarilyDeactivatedAsync()
+        {
+            var result = await _httpClient.GetFromJsonAsync<bool>("api/Pumps/IsTemporarilyDeactivated");
+            return result;
         }
         public string GetExportExcelUrl(string? keyword = null, int? stationId = null)
         {

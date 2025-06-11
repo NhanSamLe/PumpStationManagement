@@ -102,7 +102,7 @@ namespace PumpStationManagement_API.Controllers
                 if (alertDto.CreatedBy.HasValue)
                 {
                     var userExists = await context.Users
-                        .AnyAsync(u => u.UserId == alertDto.ModifiedBy);
+                        .AnyAsync(u => u.UserId == alertDto.CreatedBy);
                     if (!userExists)
                     {
                         return BadRequest(new { message = "Người tạo không tồn tại" });

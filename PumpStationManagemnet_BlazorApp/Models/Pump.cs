@@ -12,6 +12,7 @@
         public string? SerialNumber { get; set; }
         public DateTime? WarrantyExpireDate { get; set; }
         public string? Description { get; set; }
+        public double? TotalOperatingHours { get; set; }
         public bool IsDelete { get; set; }
         public int? CreatedBy { get; set; }
         public DateTime? CreatedOn { get; set; }

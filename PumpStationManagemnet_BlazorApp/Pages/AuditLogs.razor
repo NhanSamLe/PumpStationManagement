@@ -8,39 +8,34 @@
 @inject NavigationManager NavigationManager
 
 <PageTitle>Lịch Sử Thay Đổi</PageTitle>
+<link href="css/audit-logs.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+<div class="logs-container">
+    <h3 class="logs-title"><i class="fas fa-history"></i>Lịch Sử Thay Đổi</h3>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <h3 class="mb-4">Lịch Sử Thay Đổi</h3>
-
-            <!-- Bộ lọc -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <div class="row g-3 align-items-center">
-                        <div class="col-md-4">
-                            <label class="form-label">Loại thực thể:</label>
-                            <input type="text" class="form-control" @bind="EntityTypeFilter" @onkeyup="ApplyFilters" placeholder="Ví dụ: PumpStation" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">ID thực thể:</label>
-                            <input type="number" class="form-control" @bind="EntityIdFilter" @onkeyup="ApplyFilters" placeholder="Nhập ID" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Loại hành động:</label>
-                            <input type="text" class="form-control" @bind="ActionTypeFilter" @onkeyup="ApplyFilters" placeholder="Ví dụ: Create" />
-                        </div>
-                        <div class="col-12 text-end">
-                            <button class="btn btn-primary" @onclick="RefreshData" disabled="@isLoading">
-                                @if (isLoading)
-                                {
-                                    <span class="spinner-border spinner-border-sm me-2"></span>
-                                }
-                                Lọc
-                            </button>
-                        </div>
-                    </div>
-                </div>
+    <!-- Bộ lọc -->
+    <div class="filter-section">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="filter-label">Loại thực thể:</label>
+                <input type="text" class="filter-input" @bind="EntityTypeFilter" @onkeyup="ApplyFilters" placeholder="Ví dụ: PumpStation" />
+            </div>
+            <div class="col-md-4">
+                <label class="filter-label">ID thực thể:</label>
+                <input type="number" class="filter-input" @bind="EntityIdFilter" @onkeyup="ApplyFilters" placeholder="Nhập ID" />
+            </div>
+            <div class="col-md-4">
+                <label class="filter-label">Loại hành động:</label>
+                <input type="text" class="filter-input" @bind="ActionTypeFilter" @onkeyup="ApplyFilters" placeholder="Ví dụ: Create" />
+            </div>
+            <div class="col-12 text-end">
+                <button class="btn-simple btn-primary-simple" @onclick="RefreshData" disabled="@isLoading">
+                    @if (isLoading)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                    }
+                    Lọc
+                </button>
             </div>
         </div>
     </div>
@@ -48,68 +43,57 @@
     <!-- Hiển thị trạng thái tải hoặc dữ liệu -->
     @if (isLoading)
     {
-        <div class="text-center">
-            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div>
-            <p class="mt-3">Đang tải dữ liệu...</p>
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Đang tải dữ liệu...</p>
         </div>
     }
     else if (errorMessage != null)
     {
-        <div class="alert alert-danger" role="alert">
-            <strong>Lỗi!</strong> @errorMessage
-            <button class="btn btn-link p-0 ms-2" @onclick="ClearError">Xóa</button>
+        <div class="alert-error">
+            <span><strong>Lỗi!</strong> @errorMessage</span>
+            <button class="btn-link" @onclick="ClearError">Xóa</button>
         </div>
     }
     else if (auditLogs?.Any() == true)
     {
-        <div class="row">
-            <div class="col-12">
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>Thời Gian</th>
-                                <th>Thực Thể</th>
-                                <th>ID Thực Thể</th>
-                                <th>Hành Động</th>
-                                <th>Người Thực Hiện</th>
-                                <th>Mô Tả</th>
-                                
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var log in auditLogs)
-                            {
-                                <tr>
-                                    <td>@log.ActionDate.ToString("dd/MM/yyyy HH:mm:ss")</td>
-                                    <td>@log.EntityType</td>
-                                    <td>@log.EntityId</td>
-                                    <td>@log.ActionType</td>
-                                    <td>@(log.PerformedByNavigation?.FullName ?? "N/A")</td>
-                                    <td>@log.Description</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <div class="table-container">
+            <table class="table-simple">
+                <thead>
+                    <tr>
+                        <th>Thời Gian</th>
+                        <th>Thực Thể</th>
+                        <th>ID Thực Thể</th>
+                        <th>Hành Động</th>
+                        <th>Người Thực Hiện</th>
+                        <th>Mô Tả</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in auditLogs)
+                    {
+                        <tr>
+                            <td>@log.ActionDate.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                            <td>@log.EntityType</td>
+                            <td>@log.EntityId</td>
+                            <td>@log.ActionType</td>
+                            <td>@(log.PerformedByNavigation?.FullName ?? "N/A")</td>
+                            <td>@log.Description</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     }
     else
     {
-        <div class="row">
-            <div class="col-12">
-                <div class="card text-center py-5">
-                    <div class="card-body">
-                        <i class="fas fa-history fa-4x text-muted mb-3"></i>
-                        <h5>Không có lịch sử thay đổi</h5>
-                        <p class="text-muted">Chưa có dữ liệu lịch sử để hiển thị.</p>
-                        <button class="btn btn-outline-secondary mt-2" @onclick="RefreshData">
-                            <i class="fas fa-sync-alt me-2"></i>Làm mới
-                        </button>
-                    </div>
-                </div>
-            </div>
+        <div class="no-data-container">
+            <i class="fas fa-history no-data-icon"></i>
+            <h5 class="no-data-title">Không có lịch sử thay đổi</h5>
+            <p class="no-data-text">Chưa có dữ liệu lịch sử để hiển thị.</p>
+            <button class="btn-simple btn-outline-simple" @onclick="RefreshData">
+                <i class="fas fa-sync-alt me-2"></i>Làm mới
+            </button>
         </div>
     }
 </div>

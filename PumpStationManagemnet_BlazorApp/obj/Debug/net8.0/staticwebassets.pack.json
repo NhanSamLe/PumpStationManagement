@@ -25,6 +25,10 @@
       "PackagePath": "staticwebassets\\css\\app.css"
     },
     {
+      "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\audit-logs.css",
+      "PackagePath": "staticwebassets\\css\\audit-logs.css"
+    },
+    {
       "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\auth.css",
       "PackagePath": "staticwebassets\\css\\auth.css"
     },
@@ -55,6 +59,10 @@
     {
       "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\sidebar.css",
       "PackagePath": "staticwebassets\\css\\sidebar.css"
+    },
+    {
+      "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\statistics.css",
+      "PackagePath": "staticwebassets\\css\\statistics.css"
     },
     {
       "Id": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\user\\create-user.css",

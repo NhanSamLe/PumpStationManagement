@@ -110,7 +110,6 @@
 
     private async Task HandleValidSubmit()
     {
-        alertDto.CreatedBy = AuthService.CurrentUserId ?? 0;
         ErrorMessage = null;
         try
         {

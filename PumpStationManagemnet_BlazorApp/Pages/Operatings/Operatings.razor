@@ -176,7 +176,7 @@
         {
             try
             {
-                var response = await OperatingService.DeleteOperatingDatumAsync(id, 1);
+                var response = await OperatingService.DeleteOperatingDatumAsync(id, AuthService.CurrentUserId??1);
                 if (response.IsSuccessStatusCode)
                 {
                     operatingData = await OperatingService.GetOperatingDataAsync(keyword, stationId);

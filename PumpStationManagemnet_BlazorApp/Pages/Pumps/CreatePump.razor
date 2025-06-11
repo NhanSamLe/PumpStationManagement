@@ -91,7 +91,7 @@
             <div class="form-group">
                 <label class="form-label">Trạng thái</label>
                 <InputSelect class="form-select" @bind-Value="pumpDto.Status">
-                    @foreach (var option in pumpStatus)
+                    @foreach (var option in pumpStatus.Where(x => (PumpStatus)x.Key != PumpStatus.Inactive))
                     {
                         <option value="@Convert.ToInt32(option.Key)">@option.Value</option>
                     }

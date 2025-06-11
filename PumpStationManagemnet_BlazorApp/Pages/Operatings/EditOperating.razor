@@ -90,22 +90,6 @@
                     <ValidationMessage For="@(() => operatingDataDto.RunningHours)" class="validation-message" />
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Hiệu suất</label>
-                    <InputNumber class="form-control" @bind-Value="operatingDataDto.Efficiency" readonly />
-                    <ValidationMessage For="@(() => operatingDataDto.Efficiency)" class="validation-message" />
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Trạng thái</label>
-                    <InputSelect class="form-select" @bind-Value="operatingDataDto.Status" disabled>
-                        @foreach (var status in operatingStatuses)
-                        {
-                            <option value="@Convert.ToInt32(status.Key)">@status.Value</option>
-                        }
-                    </InputSelect>
-                    <ValidationMessage For="@(() => operatingDataDto.Status)" class="validation-message" />
-                </div>
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-simple btn-primary-simple">
@@ -165,6 +149,12 @@
                 operatingDataDto.Pressure ?? 0,
                 operatingDataDto.PowerConsumption ?? 0
             );
+            if (operatingDataDto.Efficiency > 100)
+            {
+                ErrorMessage = "Lỗi: Hiệu suất vượt quá 100%. Vui lòng kiểm tra và nhập đúng các thông số!";
+                await JS.InvokeVoidAsync("alert", ErrorMessage);
+                return;
+            }
             operatingDataDto.Status = CaculateHelper.EfficiencyStatus(operatingDataDto.Efficiency ?? 0);
             var response = await OperatingService.UpdateOperatingDatumAsync(Id, operatingDataDto);
             if (response.IsSuccessStatusCode)

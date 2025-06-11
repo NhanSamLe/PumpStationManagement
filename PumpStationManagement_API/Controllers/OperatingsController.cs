@@ -110,7 +110,18 @@ namespace PumpStationManagement_API.Controllers
                     CreatedOn = DateTime.Now,
                     CreatedBy =  operatingDataDto.CreatedBy
                 };
+                var pump = await context.Pumps.FirstOrDefaultAsync(p => p.PumpId == operatingDataDto.PumpId);
+                if (pump != null)
+                {
+                    pump.TotalOperatingHours = (pump.TotalOperatingHours ?? 0) + (operatingDataDto.RunningHours ?? 0);
 
+                    // Nếu tổng số giờ > 40 thì cập nhật trạng thái thành Inactive (2)
+                    if (pump.TotalOperatingHours > 40)
+                    {
+                        pump.Status = 2;
+                    }
+                    context.Pumps.Update(pump);
+                }
                 context.OperatingDatas.Add(operatingData);
                 await context.SaveChangesAsync();
                 await _auditLogService.LogActionAsync(operatingData.DataId, "Vận Hành", "Tạo Mới", "", "", operatingDataDto.CreatedBy??1, "Tạo mới dữ liệu vận hành");
@@ -148,7 +159,7 @@ namespace PumpStationManagement_API.Controllers
                 {
                     return BadRequest(new { message = "Máy bơm không tồn tại hoặc đã bị xóa" });
                 }
-
+                var oldRunningHours = existingOperatingData.RunningHours ?? 0;
                 existingOperatingData.PumpId = operatingDataDto.PumpId;
                 existingOperatingData.RecordTime = operatingDataDto.RecordTime;
                 existingOperatingData.FlowRate = operatingDataDto.FlowRate;
@@ -160,6 +171,20 @@ namespace PumpStationManagement_API.Controllers
                 existingOperatingData.Status = operatingDataDto.Status;
                 existingOperatingData.ModifiedOn = DateTime.Now;
                 existingOperatingData.ModifiedBy = operatingDataDto.ModifiedBy ?? 1;
+
+                var newRunningHours = operatingDataDto.RunningHours ?? 0;
+                var delta = newRunningHours - oldRunningHours;
+                var pump = await context.Pumps.FirstOrDefaultAsync(p => p.PumpId == operatingDataDto.PumpId);
+                if (pump != null)
+                {
+                    pump.TotalOperatingHours = (pump.TotalOperatingHours ?? 0) + delta;
+
+                    if (pump.TotalOperatingHours > 40)
+                    {
+                        pump.Status = 2;
+                    }
+                    context.Pumps.Update(pump);
+                }
                 await context.SaveChangesAsync();
                 await _auditLogService.LogActionAsync(id, "Vận Hành", "Cập Nhập","", "", operatingDataDto.ModifiedBy??1, "Cập nhật dữ liệu vận hành");
                 return Ok(existingOperatingData);

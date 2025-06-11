@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "pU+DBcNDmffxGkTcBL0An77mlR0EjYmfOZX1LGBzk4o=",
+  "Hash": "ogDY5r7rHlxp2NqZhT65ApqNAGek+NX0jLzOZxjkqPg=",
   "Source": "PumpStationManagemnet_BlazorApp",
   "BasePath": "/",
   "Mode": "Root",
@@ -8149,6 +8149,25 @@
       "OriginalItemSpec": "wwwroot\\css\\app.css"
     },
     {
+      "Identity": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\audit-logs.css",
+      "SourceId": "PumpStationManagemnet_BlazorApp",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\",
+      "BasePath": "/",
+      "RelativePath": "css/audit-logs.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\css\\audit-logs.css"
+    },
+    {
       "Identity": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\auth.css",
       "SourceId": "PumpStationManagemnet_BlazorApp",
       "SourceType": "Discovered",
@@ -8299,6 +8318,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\css\\sidebar.css"
+    },
+    {
+      "Identity": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\statistics.css",
+      "SourceId": "PumpStationManagemnet_BlazorApp",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\",
+      "BasePath": "/",
+      "RelativePath": "css/statistics.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\css\\statistics.css"
     },
     {
       "Identity": "C:\\Users\\Admin\\source\\repos\\PumpStationManagement_API\\PumpStationManagemnet_BlazorApp\\wwwroot\\css\\user\\create-user.css",

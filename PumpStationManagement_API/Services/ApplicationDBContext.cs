@@ -20,6 +20,7 @@ namespace PumpStationManagement_API.Services
         public virtual DbSet<PumpStation> PumpStations { get; set; }
 
         public virtual DbSet<AuditLog> AuditLogs { get; set; }
+        public virtual DbSet<PumpStatusBackup> PumpStatusBackups { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -97,6 +98,12 @@ namespace PumpStationManagement_API.Services
                 .WithMany(u => u.MaintenanceModifiedByNavigations)
                 .HasForeignKey(m => m.ModifiedBy)
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<PumpStatusBackup>()
+                .HasOne(b => b.Pump)
+                .WithOne() // hoặc .WithMany() nếu bạn cho phép một pump có nhiều backup
+                .HasForeignKey<PumpStatusBackup>(b => b.PumpId)
+                .OnDelete(DeleteBehavior.Restrict); // hoặc .SetNull nếu cần
+
         }
 
     }
