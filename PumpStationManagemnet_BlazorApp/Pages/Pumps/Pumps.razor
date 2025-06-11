@@ -154,11 +154,12 @@
             <i class="fas @(isTemporarilyDeactivated ? "fa-history" : "fa-stop") me-2"></i>
             @(isTemporarilyDeactivated ? "Khôi phục trạng thái" : "Ngưng tạm thời tất cả")
         </button>
-        <button class="btn btn-outline-success mt-3" @onclick="ExportToExcel">
-            <i class="fas fa-file-excel me-2"></i>
-            Xuất Excel
-        </button>
+       
     }
+    <button class="btn btn-outline-success mt-3" @onclick="ExportToExcel">
+        <i class="fas fa-file-excel me-2"></i>
+        Xuất Excel
+    </button>
    
 </div>
 

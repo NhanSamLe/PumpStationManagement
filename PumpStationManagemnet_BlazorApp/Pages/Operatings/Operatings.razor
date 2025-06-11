@@ -134,13 +134,10 @@
             </div>
         </div>
     }
-    @if (AuthService.IsAuthenticated && AuthService.HasRole(UserRole.Admin))
-    {
         <button class="btn btn-outline-success mt2" @onclick="ExportToExcel">
             <i class="fas fa-file-excel me-2"></i>
             Xuất Excel
         </button>
-    }
 </div>
 
 @code {
