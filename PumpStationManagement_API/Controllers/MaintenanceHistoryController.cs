@@ -125,6 +125,17 @@ namespace PumpStationManagement_API.Controllers
                 };
 
                 context.MaintenanceHistories.Add(maintenanceHistory);
+                var pump = await context.Pumps.FirstOrDefaultAsync(p => p.PumpId == maintenanceHistoryDto.PumpId);
+                if (pump != null)
+                {
+
+                    // Nếu tổng số giờ > 40 thì cập nhật trạng thái thành Inactive (2)
+                    if (maintenanceHistory.Status == 0)
+                    {
+                        pump.Status = 1;
+                    }
+                    context.Pumps.Update(pump);
+                }
                 await context.SaveChangesAsync();
                 await _auditLogService.LogActionAsync(maintenanceHistory.MaintenanceId, "Bảo Trì", "Tạo Mới", "","", maintenanceHistoryDto.CreatedBy ?? 0, "Tạo mới lịch sử bảo trì");
                 return CreatedAtAction(nameof(GetMaintenanceHistory), new { id = maintenanceHistory.MaintenanceId }, maintenanceHistory);
@@ -184,6 +195,18 @@ namespace PumpStationManagement_API.Controllers
                 existingMaintenanceHistory.Status = maintenanceHistoryDto.Status;
                 existingMaintenanceHistory.PerformedBy = maintenanceHistoryDto.PerformedBy;
                 existingMaintenanceHistory.ModifiedBy = maintenanceHistoryDto.ModifiedBy;
+
+                var pump = await context.Pumps.FirstOrDefaultAsync(p => p.PumpId == maintenanceHistoryDto.PumpId);
+                if (pump != null)
+                {
+
+                    // Nếu tổng số giờ > 40 thì cập nhật trạng thái thành Inactive (2)
+                    if (maintenanceHistoryDto.Status == 0)
+                    {
+                        pump.Status = 1;
+                    }
+                    context.Pumps.Update(pump);
+                }
                 await context.SaveChangesAsync();
                 await _auditLogService.LogActionAsync(id, "Bảo Trì", "Cập Nhập", "", "", maintenanceHistoryDto.ModifiedBy ?? 0, "Cập nhật lịch sử bảo trì");
                 return Ok(existingMaintenanceHistory);
@@ -242,6 +265,12 @@ namespace PumpStationManagement_API.Controllers
                 maintenanceHistory.Status = (int)MaintainStatus.Completed; // 2 = Completed
                 maintenanceHistory.EndDate = DateTime.Now;
                 maintenanceHistory.ModifiedBy = modifiedBy;
+                var pump = await context.Pumps.FirstOrDefaultAsync(p => p.PumpId == maintenanceHistory.PumpId);
+                if (pump != null)
+                {
+                    pump.Status = 0;
+                    context.Pumps.Update(pump);
+                }
                 await context.SaveChangesAsync();
                 await _auditLogService.LogActionAsync(id, "Bảo Trì", " Hoàn Thành", "", "", modifiedBy, "Hoàn Thành Bảo Trì");
                 return Ok(new { message = "Cập nhật trạng thái bảo trì thành công" });
@@ -271,6 +300,12 @@ namespace PumpStationManagement_API.Controllers
 
                 maintenanceHistory.Status = (int)MaintainStatus.InProgress; // 2 = Completed
                 maintenanceHistory.ModifiedBy = modifiedBy;
+                var pump = await context.Pumps.FirstOrDefaultAsync(p => p.PumpId == maintenanceHistory.PumpId);
+                if (pump != null)
+                {
+                    pump.Status = 1;
+                    context.Pumps.Update(pump);
+                }
                 await context.SaveChangesAsync();
                 await _auditLogService.LogActionAsync(id, "Bảo Trì", " Kích Hoạt", "", "", modifiedBy, "Bắt Đầu Tiến Hành Bảo Trì");
                 return Ok(new { message = "Cập nhật trạng thái bảo trì thành công" });

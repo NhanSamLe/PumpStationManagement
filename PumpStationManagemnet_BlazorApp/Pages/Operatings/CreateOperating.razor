@@ -35,7 +35,7 @@
                 <label class="form-label">Máy bơm</label>
                 <InputSelect class="form-select" @bind-Value="operatingDataDto.PumpId">
                     <option value="">Chọn máy bơm</option>
-                    @foreach (var pump in pumps)
+                    @foreach (var pump in pumps.Where(p => p.Status == 0))
                     {
                         <option value="@pump.PumpId">@pump.PumpName</option>
                     }

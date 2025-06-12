@@ -44,7 +44,7 @@
 
                 <div class="form-group">
                     <label class="form-label">Máy bơm</label>
-                    <InputSelect class="form-select" @bind-Value="operatingDataDto.PumpId">
+                    <InputSelect class="form-select" @bind-Value="operatingDataDto.PumpId" disabled>
                         <option value="">Chọn máy bơm</option>
                         @foreach (var pump in pumps)
                         {
@@ -109,7 +109,6 @@
 @code {
     [Parameter]
     public int Id { get; set; }
-
     private OperatingData? operatingDatum;
     private OperatingDataDTO operatingDataDto = new();
     private List<Pump> pumps = new();
@@ -136,6 +135,7 @@
                     Status = operatingDatum.Status
                 };
         }
+       
     }
 
     private async Task HandleValidSubmit()
@@ -153,6 +153,7 @@
             {
                 ErrorMessage = "Lỗi: Hiệu suất vượt quá 100%. Vui lòng kiểm tra và nhập đúng các thông số!";
                 await JS.InvokeVoidAsync("alert", ErrorMessage);
+                StateHasChanged();
                 return;
             }
             operatingDataDto.Status = CaculateHelper.EfficiencyStatus(operatingDataDto.Efficiency ?? 0);

@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "PumpStationManagemnet_BlazorApp",
   "resources": {
-    "hash": "sha256-l8a5kdHD0ORIj5pO1Ave66bHFbTV+H5q8dII1FyloYY=",
+    "hash": "sha256-rZKXrUsR8fkIR3xEMa0iCYL5eA8Y0LbMiyKD2d3EEU4=",
     "jsModuleNative": {
       "dotnet.native.8.0.7.37dkch2d2y.js": "sha256-tFsxPBbhkdn6GKNBKvCRLzrfAHdyM86odYTe0MtrwMk="
     },
@@ -215,10 +215,10 @@
       "mscorlib.wasm": "sha256-fLbZiSHBNdpHoh4EgRqMaNP5NQyIK5TEj6AXFLqo8m8=",
       "netstandard.wasm": "sha256-d4xbAE8qrKq5euUoZHPO+jkYPjlCYBzUew45MKsYKic=",
       "System.Private.CoreLib.wasm": "sha256-8yi6NcX1lkNQgV4WKjnMBYIZyKh4P+OXnXVQmgxGZD4=",
-      "PumpStationManagemnet_BlazorApp.wasm": "sha256-IRiEpNa+H00IbSl9OK8GbBif1d0u8eaRr8B7pmqxdLk="
+      "PumpStationManagemnet_BlazorApp.wasm": "sha256-CROdZJI4aMiWQyaFMCAnXQFwIwkvPvCXt49UV8EnoLY="
     },
     "pdb": {
-      "PumpStationManagemnet_BlazorApp.pdb": "sha256-ArzjJjsXJBibokzmWUZOMptwqBUATp4pCDuiIx7GZnA="
+      "PumpStationManagemnet_BlazorApp.pdb": "sha256-eOXEhQkLCv/vAdJrtRx9sqv/19eSAKpgavYu0natFh0="
     }
   },
   "cacheBootResources": true,

@@ -43,7 +43,7 @@
 
                 <div class="form-group">
                     <label class="form-label">Máy bơm</label>
-                    <InputSelect class="form-select" @bind-Value="maintenanceHistoryDto.PumpId">
+                    <InputSelect class="form-select" @bind-Value="maintenanceHistoryDto.PumpId" disabled>
                         <option value="">Chọn máy bơm</option>
                         @foreach (var pump in pumps)
                         {
